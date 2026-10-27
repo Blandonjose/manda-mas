@@ -164,7 +164,7 @@ def build_page(page, data, country, base, nav):
         '<meta property="og:type" content="website">',
         '<meta property="og:locale" content="es_US">',
         '<meta name="twitter:card" content="summary_large_image">',
-        '<meta name="theme-color" content="#3b1a6b">',
+        '<meta name="theme-color" content="#0b2a5b">',
         f'<link rel="icon" href="{FAVICON}">',
     ]
     if url:
