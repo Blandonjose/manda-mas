@@ -5,249 +5,371 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
 <style>
-/* Layout: one narrow phone-first column. Ask (amount + country) -> answer (best option) -> full ranking -> how to read it. */
+/* Layout: full-width bands. Purple hero (headline + calculator | live phone) -> ranking on lilac -> family photo story
+   -> how it works -> explainer + FAQ -> purple footer. Each band centers an .inner column with the side gutter. */
 :root {
-  --paper: #f4f7f4;
+  --plum: #3b1a6b;        /* brand purple: hero, footer, buttons */
+  --plum-2: #55299a;      /* lighter purple for hover and decoration */
+  --mango: #ffb627;       /* brand highlight: amounts received, savings */
+  --mango-deep: #e8890b;  /* mango text on light backgrounds */
+  --mango-soft: #fff1d1;
+  --bg: #f7f2fc;          /* soft lilac-cream page */
   --surface: #ffffff;
-  --ink: #13211c;
-  --muted: #56665f;
-  --line: #d9e2dc;
-  --money: #0d6a55;
-  --money-soft: #e3f1ec;
-  --marigold: #d99511;
-  --marigold-soft: #fff2d3;
-  --loss: #b0432b;
-  --focus: #1f7ae0;
+  --ink: #22123d;
+  --muted: #65577d;
+  --line: #e5daf2;
+  --on-plum: #ffffff;
+  --on-plum-muted: #d8c9f0;
+  --loss: #c0412b;
+  --focus: #2f7cf6;
   --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --body: "Atkinson Hyperlegible", "Verdana", "Segoe UI", system-ui, sans-serif;
-  --r: 14px;
+  --r: 18px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #0d1412; --surface: #151f1b; --ink: #e7efeb; --muted: #9caba5; --line: #2a3832;
-    --money: #4cc29f; --money-soft: #15312a; --marigold: #f0b63c; --marigold-soft: #3a2d10; --loss: #ef8a6f; --focus: #6aa8ff;
+    --plum: #2a1150; --plum-2: #6b3fc0; --mango: #ffc04d; --mango-deep: #ffc04d; --mango-soft: #3a2a0c;
+    --bg: #130a20; --surface: #1d1230; --ink: #f2ebfc; --muted: #b5a8cb; --line: #33244d;
+    --on-plum: #ffffff; --on-plum-muted: #cdbdea; --loss: #ff8f74; --focus: #79a8ff;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --paper: #0d1412; --surface: #151f1b; --ink: #e7efeb; --muted: #9caba5; --line: #2a3832;
-  --money: #4cc29f; --money-soft: #15312a; --marigold: #f0b63c; --marigold-soft: #3a2d10; --loss: #ef8a6f; --focus: #6aa8ff;
+  --plum: #2a1150; --plum-2: #6b3fc0; --mango: #ffc04d; --mango-deep: #ffc04d; --mango-soft: #3a2a0c;
+  --bg: #130a20; --surface: #1d1230; --ink: #f2ebfc; --muted: #b5a8cb; --line: #33244d;
+  --on-plum: #ffffff; --on-plum-muted: #cdbdea; --loss: #ff8f74; --focus: #79a8ff;
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
-body {
-  background: var(--paper); color: var(--ink);
-  font-family: var(--body); font-size: 17px; line-height: 1.5;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 20px 48px;
-}
-.wrap { max-width: 560px; margin: 0 auto; display: grid; gap: 22px; }
-h1, h2, h3 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--plum); }
+h1, h2, h3 { font-family: var(--display); line-height: 1.1; text-wrap: balance; margin: 0; }
 p { margin: 0; }
+img { display: block; max-width: 100%; }
 .num { font-variant-numeric: tabular-nums; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
-a { color: var(--money); }
-
-/* Masthead */
-.brand { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.brand h1 { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; }
-.brand h1 span { color: var(--money); }
-.brand .tag { color: var(--muted); font-size: 0.95rem; }
-
-/* Ask */
-.ask { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; display: grid; gap: 16px; }
-.label { font-weight: 700; font-size: 1rem; display: block; margin-bottom: 8px; }
-.amount { display: flex; align-items: center; gap: 6px; border: 2px solid var(--line); border-radius: 12px; padding: 4px 14px; background: var(--paper); }
-.amount:focus-within { border-color: var(--money); }
-.amount b { font-family: var(--display); font-size: 2rem; color: var(--muted); }
-.amount input {
-  border: 0; background: transparent; color: var(--ink); width: 100%; min-width: 0;
-  font-family: var(--display); font-weight: 800; font-size: 2.4rem; padding: 4px 0; font-variant-numeric: tabular-nums;
+a { color: var(--plum-2); }
+.inner {
+  max-width: 1120px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
+.band { padding-block: 56px; }
+.eyebrow { font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; }
+.section-title { font-size: clamp(1.6rem, 3.5vw, 2.3rem); font-weight: 800; letter-spacing: -0.02em; }
+
+/* Hero */
+.hero { background: var(--plum); color: var(--on-plum); position: relative; overflow: hidden; padding-block: 18px 64px; }
+.hero::before, .hero::after { content: ""; position: absolute; border-radius: 50%; pointer-events: none; }
+.hero::before { width: 560px; height: 560px; right: -140px; top: 60px; background: radial-gradient(circle, rgba(255,182,39,.95) 0 58%, rgba(255,182,39,0) 59%); opacity: .9; }
+.hero::after { width: 300px; height: 300px; left: -120px; bottom: -150px; border: 46px solid rgba(255,255,255,.06); }
+.nav { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 36px; }
+.logo { display: flex; align-items: center; gap: 10px; color: var(--on-plum); text-decoration: none; font-family: var(--display); font-weight: 800; font-size: 1.6rem; letter-spacing: -0.02em; }
+.logo-mark { width: 38px; height: 38px; border-radius: 11px; background: var(--mango); color: var(--plum); display: grid; place-items: center; font-size: 1.35rem; transform: rotate(-6deg); }
+.logo span.mas { color: var(--mango); }
+.nav-links { display: flex; gap: 18px; font-weight: 700; font-size: 0.95rem; }
+.nav-links a { color: var(--on-plum-muted); text-decoration: none; }
+.nav-links a:hover { color: var(--on-plum); }
+.hero-grid { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 48px; align-items: center; }
+.hero-copy { display: grid; gap: 18px; }
+.hero .eyebrow { color: var(--mango); }
+.hero h1 { font-size: clamp(2.3rem, 5.4vw, 3.9rem); font-weight: 800; letter-spacing: -0.03em; }
+.hero h1 em { font-style: normal; color: var(--mango); }
+.lede { color: var(--on-plum-muted); font-size: 1.08rem; max-width: 56ch; }
+
+/* Calculator card (in hero) */
+.ask { background: var(--surface); color: var(--ink); border-radius: 22px; padding: 20px; display: grid; gap: 16px; box-shadow: 0 24px 60px -24px rgba(10, 2, 30, .55); }
+.label { font-weight: 700; font-size: 1rem; display: block; margin-bottom: 8px; }
+.amount { display: flex; align-items: center; gap: 6px; border: 2px solid var(--line); border-radius: 14px; padding: 4px 14px; background: var(--bg); }
+.amount:focus-within { border-color: var(--plum-2); }
+.amount b { font-family: var(--display); font-size: 2rem; color: var(--muted); }
+.amount input { border: 0; background: transparent; color: var(--ink); width: 100%; min-width: 0; font-family: var(--display); font-weight: 800; font-size: 2.3rem; padding: 2px 0; font-variant-numeric: tabular-nums; }
 .amount input:focus { outline: none; }
 .amount small { color: var(--muted); font-weight: 700; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.chip {
-  border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px;
-  padding: 8px 14px; font: inherit; font-size: 0.95rem; cursor: pointer; min-height: 40px;
-}
-.chip[aria-pressed="true"] { background: var(--money); border-color: var(--money); color: var(--surface); font-weight: 700; }
-.countries { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 8px; }
-.country {
-  display: flex; align-items: center; gap: 10px; text-align: left;
-  border: 2px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 12px;
-  padding: 10px 12px; font: inherit; font-size: 0.98rem; cursor: pointer; min-height: 52px;
-}
-.country .flag { font-size: 1.5rem; line-height: 1; }
-.country[aria-pressed="true"] { border-color: var(--money); background: var(--money-soft); font-weight: 700; }
-.country:disabled { opacity: 0.55; cursor: default; }
-.country small { display: block; color: var(--muted); font-size: 0.78rem; font-weight: 400; }
+.chip { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 0.95rem; cursor: pointer; min-height: 40px; }
+.chip[aria-pressed="true"] { background: var(--plum); border-color: var(--plum); color: var(--on-plum); font-weight: 700; }
+.countries { display: flex; flex-wrap: wrap; gap: 8px; }
+.country { display: inline-flex; align-items: center; gap: 8px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 14px 6px 10px; font: inherit; font-size: 0.95rem; cursor: pointer; min-height: 44px; }
+.country .flag { font-size: 1.25rem; line-height: 1; }
+.country small { display: none; }
+.country[aria-pressed="true"] { border-color: var(--plum); background: var(--plum); color: var(--on-plum); font-weight: 700; }
+.country:disabled { opacity: 0.5; cursor: default; }
 .warn { color: var(--loss); font-size: 0.92rem; }
 
-/* Answer */
-.answer { background: var(--marigold-soft); border: 2px solid var(--marigold); border-radius: var(--r); padding: 18px; display: grid; gap: 10px; }
-.answer .eyebrow { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--muted); }
-.answer h2 { font-size: 1.45rem; font-weight: 600; }
-.answer .big { font-family: var(--display); font-weight: 800; font-size: 2.6rem; line-height: 1.05; color: var(--money); letter-spacing: -0.02em; overflow-wrap: anywhere; }
-.answer .big small { font-size: 1.1rem; font-weight: 600; color: var(--ink); letter-spacing: 0; }
-.answer .usd { color: var(--muted); }
-.answer .gap { border-top: 1px dashed var(--marigold); padding-top: 10px; }
-.answer .gap strong { color: var(--loss); }
+/* Phone mockup showing the live answer */
+.phone-wrap { position: relative; justify-self: center; width: min(100%, 340px); }
+.phone { position: relative; background: #0f0a18; border-radius: 46px; padding: 12px; box-shadow: 0 40px 80px -30px rgba(10, 2, 30, .7), inset 0 0 0 2px #3a2e4f; transform: rotate(2deg); }
+.phone::before { content: ""; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 92px; height: 24px; border-radius: 14px; background: #0f0a18; z-index: 2; }
+.screen { background: var(--bg); color: var(--ink); border-radius: 36px; padding: 52px 16px 18px; min-height: 560px; display: grid; align-content: start; gap: 12px; overflow: hidden; }
+.app-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--display); font-weight: 800; font-size: 1.05rem; }
+.app-head .mas { color: var(--mango-deep); }
+.fresh { display: inline-flex; align-items: center; gap: 7px; font-size: 0.78rem; font-weight: 700; color: var(--muted); }
+.fresh .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+.fresh.live { color: #1b8a5a; }
+.fresh.live .dot { background: #1fb36f; box-shadow: 0 0 0 3px rgba(31, 179, 111, .2); }
+.best-card { background: var(--surface); border-radius: 20px; padding: 16px; display: grid; gap: 6px; box-shadow: 0 10px 24px -16px rgba(34, 18, 61, .5); }
+.best-card .eyebrow { color: var(--muted); font-size: 0.7rem; }
+.best-card h2 { font-size: 1.1rem; font-weight: 600; }
+.best-card .big { font-family: var(--display); font-weight: 800; font-size: 2.2rem; line-height: 1; color: var(--plum-2); letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.best-card .big small { font-size: 0.95rem; color: var(--ink); font-weight: 600; letter-spacing: 0; }
+.best-card .usd { color: var(--muted); font-size: 0.85rem; }
+.save { display: flex; align-items: center; gap: 10px; background: var(--mango); color: #2a1a00; border-radius: 16px; padding: 12px 14px; font-weight: 700; font-size: 0.92rem; line-height: 1.3; }
+.save b { font-family: var(--display); font-size: 1.3rem; display: block; }
+.save .coin { width: 34px; height: 34px; border-radius: 50%; background: #2a1a00; color: var(--mango); display: grid; place-items: center; font-family: var(--display); font-weight: 800; flex: none; }
+.mini { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mini li { display: flex; justify-content: space-between; gap: 8px; background: var(--surface); border-radius: 12px; padding: 9px 12px; font-size: 0.88rem; }
+.mini li span:last-child { font-weight: 700; }
+.mini li.top { outline: 2px solid var(--mango); }
+.phone-note { color: var(--muted); font-size: 0.78rem; text-align: center; }
+.float { position: absolute; z-index: 3; background: var(--surface); color: var(--ink); border-radius: 16px; padding: 10px 14px; box-shadow: 0 18px 40px -18px rgba(10, 2, 30, .6); font-size: 0.85rem; font-weight: 700; display: flex; gap: 8px; align-items: center; width: 190px; }
+.float .tick { width: 26px; height: 26px; border-radius: 50%; background: var(--mango); color: #2a1a00; display: grid; place-items: center; flex: none; }
+.float-a { left: -170px; top: 170px; transform: rotate(-3deg); }
+.float-b { right: -150px; bottom: 120px; transform: rotate(3deg); }
 
 /* Ranking */
-.section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-.section-head h2 { font-size: 1.3rem; }
-.section-head p { color: var(--muted); font-size: 0.9rem; }
-.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.row { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 10px; }
-.row.best { border: 2px solid var(--marigold); }
-.row-top { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
-.rank { font-family: var(--display); font-weight: 800; color: var(--muted); width: 1.6em; text-align: center; font-size: 1.1rem; }
+.section-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.section-head p { color: var(--muted); }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.row { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 10px; }
+.row.best { border: 2px solid var(--mango); box-shadow: 0 16px 36px -24px rgba(232, 137, 11, .7); }
+.row-top { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; }
+.rank { font-family: var(--display); font-weight: 800; color: var(--plum-2); width: 1.7em; height: 1.7em; display: grid; place-items: center; border-radius: 50%; background: var(--bg); font-size: 1.05rem; }
+.row.best .rank { background: var(--mango); color: #2a1a00; }
 .who { min-width: 0; }
-.who h3 { font-size: 1.12rem; font-weight: 600; }
+.who h3 { font-size: 1.15rem; font-weight: 600; }
 .pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-.pill { font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--paper); color: var(--muted); border: 1px solid var(--line); }
-.pill.best { background: var(--marigold); color: #241a03; border-color: var(--marigold); }
-.pill.promo { background: var(--money-soft); color: var(--money); border-color: transparent; }
+.pill { font-size: 0.75rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+.pill.best { background: var(--mango); color: #2a1a00; border-color: var(--mango); }
+.pill.promo { background: var(--mango-soft); color: var(--mango-deep); border-color: transparent; }
 .pill.old { color: var(--loss); }
 .gets { text-align: right; }
-.gets strong { font-family: var(--display); font-weight: 800; font-size: 1.35rem; display: block; line-height: 1.1; }
+.gets strong { font-family: var(--display); font-weight: 800; font-size: 1.45rem; display: block; line-height: 1.1; }
 .gets span { color: var(--muted); font-size: 0.85rem; }
 .row-bottom { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 10px; }
 .cost { font-size: 0.92rem; color: var(--muted); }
 .cost b { color: var(--ink); }
 .cost b.bad { color: var(--loss); }
-.go {
-  display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: 700; font-size: 0.95rem;
-  background: var(--money); color: var(--surface); border-radius: 10px; padding: 9px 14px; min-height: 42px;
-}
-.go:hover { filter: brightness(1.08); }
+.go { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: 700; font-size: 0.95rem; background: var(--plum); color: var(--on-plum); border-radius: 12px; padding: 10px 16px; min-height: 44px; }
+.go:hover { background: var(--plum-2); }
+.row.best .go { background: var(--mango); color: #2a1a00; }
 .empty { color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); padding: 18px; }
-
-/* Stablecoin */
-.crypto { border: 1px dashed var(--money); border-radius: var(--r); padding: 16px; display: grid; gap: 8px; background: var(--surface); }
-.crypto h2 { font-size: 1.15rem; }
-.crypto .gets-line { font-family: var(--display); font-weight: 800; font-size: 1.4rem; color: var(--money); }
+.crypto { border: 2px dashed var(--plum-2); border-radius: var(--r); padding: 18px; display: grid; gap: 8px; background: var(--surface); margin-top: 20px; }
+.crypto h2 { font-size: 1.2rem; }
+.crypto .gets-line { font-family: var(--display); font-weight: 800; font-size: 1.45rem; color: var(--plum-2); }
 .crypto ul { margin: 0; padding-left: 1.2em; color: var(--muted); font-size: 0.92rem; display: grid; gap: 4px; }
 
-/* Explainer */
-.learn { display: grid; gap: 12px; }
-.learn h2 { font-size: 1.3rem; }
-.terms { display: grid; gap: 10px; margin: 0; }
-.term { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; }
+/* Families story */
+.story { background: var(--surface); }
+.story-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: center; }
+.photos { position: relative; padding-bottom: 60px; }
+.photos .main { width: 88%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 28px; }
+.photos .inset { position: absolute; right: 0; bottom: 0; width: 42%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 22px; border: 6px solid var(--surface); box-shadow: 0 20px 40px -20px rgba(34, 18, 61, .5); }
+.photos .badge { position: absolute; left: 18px; bottom: 30px; background: var(--mango); color: #2a1a00; border-radius: 16px; padding: 10px 14px; font-weight: 700; font-size: 0.9rem; box-shadow: 0 14px 30px -16px rgba(34, 18, 61, .6); }
+.photos .badge b { font-family: var(--display); font-size: 1.4rem; display: block; line-height: 1; }
+.story-copy { display: grid; gap: 18px; }
+.story-copy .eyebrow { color: var(--mango-deep); }
+.story-copy > p { color: var(--muted); font-size: 1.05rem; max-width: 52ch; }
+.perks { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.perks li { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: start; }
+.perks .ico { width: 44px; height: 44px; border-radius: 14px; background: var(--bg); color: var(--plum-2); display: grid; place-items: center; }
+.perks .ico svg { width: 22px; height: 22px; }
+.perks b { display: block; }
+.perks span { color: var(--muted); font-size: 0.95rem; }
+
+/* How it works */
+.steps { list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; counter-reset: step; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 22px; display: grid; gap: 8px; counter-increment: step; }
+.step::before { content: counter(step); width: 44px; height: 44px; border-radius: 50%; background: var(--plum); color: var(--mango); display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 1.3rem; }
+.step h3 { font-size: 1.15rem; }
+.step p { color: var(--muted); font-size: 0.95rem; }
+
+/* Banner photo */
+.banner { position: relative; border-radius: 28px; overflow: hidden; min-height: 320px; display: grid; align-items: end; }
+.banner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 12%; }
+.banner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(59, 26, 107, 0) 30%, rgba(42, 17, 80, .88) 100%); }
+.banner blockquote { position: relative; z-index: 1; margin: 0; padding: 28px; color: #fff; font-family: var(--display); font-weight: 800; font-size: clamp(1.4rem, 3vw, 2.1rem); line-height: 1.15; max-width: 22ch; }
+.banner blockquote span { color: var(--mango); }
+
+/* Explainer + FAQ */
+.learn-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+.terms { display: grid; gap: 10px; margin: 16px 0 0; }
+.term { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; }
 .term dt { font-weight: 700; }
 .term dd { margin: 4px 0 0; color: var(--muted); }
 .term dd b { color: var(--ink); }
-
-.lede { color: var(--muted); max-width: 60ch; margin-top: -8px; }
-
-/* Freshness */
-.fresh { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; color: var(--muted); }
-.fresh .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
-.fresh.live { color: var(--money); }
-.fresh.live .dot { background: var(--money); box-shadow: 0 0 0 3px var(--money-soft); }
-
-/* FAQ */
-.faq { display: grid; gap: 8px; }
-.faq h2 { font-size: 1.3rem; margin-bottom: 4px; }
-.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; }
+.faq { display: grid; gap: 10px; }
+.faq h2 { margin-bottom: 6px; }
+.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; }
 .faq summary { font-weight: 700; cursor: pointer; min-height: 28px; }
 .faq details p { margin-top: 8px; color: var(--muted); }
-.countries-nav { display: grid; gap: 8px; }
-.countries-nav h2 { font-size: 1.05rem; }
+
+/* Footer */
+.foot { background: var(--plum); color: var(--on-plum-muted); padding-block: 40px; font-size: 0.88rem; }
+.foot .inner { display: grid; gap: 14px; }
+.foot .logo { font-size: 1.3rem; }
+.foot a { color: var(--on-plum); }
+.countries-nav { display: grid; gap: 10px; }
+.countries-nav h2 { font-size: 1rem; color: var(--on-plum); }
 .countries-nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.countries-nav a { display: inline-block; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; background: var(--surface); }
+.countries-nav a { display: inline-block; padding: 6px 12px; border: 1px solid rgba(255, 255, 255, .25); border-radius: 999px; text-decoration: none; }
 
-footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 16px; }
-
+@media (max-width: 860px) {
+  .hero-grid, .story-grid, .learn-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .hero::before { width: 420px; height: 420px; right: -180px; top: auto; bottom: 40px; }
+  .steps { grid-template-columns: minmax(0, 1fr); }
+  .float { display: none !important; }
+  .screen { min-height: 0; }
+  .band { padding-block: 44px; }
+}
 @media (max-width: 420px) {
-  .answer .big { font-size: 2.15rem; }
+  .nav-links { display: none; }
   .row-top { grid-template-columns: auto 1fr; }
   .gets { grid-column: 2; text-align: left; }
+  .phone { transform: none; }
+  .float { display: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .row, .answer { transition: border-color .2s; }
+  .phone { transition: transform .4s ease; }
+  .phone-wrap:hover .phone { transform: rotate(0deg) translateY(-4px); }
+  .go, .chip, .country { transition: background-color .15s, border-color .15s; }
 }
 </style>
 
 <div class="wrap">
-  <header class="brand">
-    <h1>Manda <span>Más</span></h1>
-    <p class="tag">Compara antes de enviar</p>
-  </header>
-  <p class="lede" id="lede">Mira cuánto recibe tu familia con cada servicio antes de mandar dinero. Comparamos Remitly, Western Union, Xoom, Wise y más para envíos a México, Guatemala, Honduras, El Salvador, República Dominicana, Colombia y Costa Rica.</p>
+  <header class="hero">
+    <div class="inner">
+      <nav class="nav" aria-label="Principal">
+        <a class="logo" href="#top" id="top"><span class="logo-mark" aria-hidden="true">$</span><span>Manda <span class="mas">Más</span></span></a>
+        <div class="nav-links"><a href="#opciones">Comparar</a><a href="#como-funciona">Cómo funciona</a><a href="#preguntas">Preguntas</a></div>
+      </nav>
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Gratis · Precios en vivo · En español</p>
+          <h1>Que llegue <em>más dinero</em> a tu familia</h1>
+          <p class="lede" id="lede">Mira cuánto recibe tu familia con cada servicio antes de mandar dinero. Comparamos Remitly, Western Union, Xoom, Wise y más para envíos a México, Guatemala, Honduras, El Salvador, República Dominicana, Colombia y Costa Rica.</p>
+          <section class="ask" aria-label="Tu envío">
+            <div>
+              <label class="label" for="amount">¿Cuántos dólares vas a mandar?</label>
+              <div class="amount">
+                <b aria-hidden="true">$</b>
+                <input id="amount" inputmode="decimal" autocomplete="off" value="300" aria-describedby="amount-note">
+                <small>USD</small>
+              </div>
+              <div class="chips" id="chips" role="group" aria-label="Montos comunes"></div>
+              <p class="warn" id="amount-note" hidden></p>
+            </div>
+            <div>
+              <span class="label" id="country-label">¿A qué país?</span>
+              <div class="countries" id="countries" role="group" aria-labelledby="country-label"></div>
+            </div>
+          </section>
+        </div>
 
-  <section class="ask" aria-label="Tu envío">
-    <div>
-      <label class="label" for="amount">¿Cuántos dólares vas a mandar?</label>
-      <div class="amount">
-        <b aria-hidden="true">$</b>
-        <input id="amount" inputmode="decimal" autocomplete="off" value="300" aria-describedby="amount-note">
-        <small>USD</small>
+        <div class="phone-wrap" aria-live="polite">
+          <div class="float float-a" id="float-a" hidden><span class="tick" aria-hidden="true">✓</span><span id="float-a-text"></span></div>
+          <div class="phone">
+            <div class="screen" id="answer"></div>
+          </div>
+          <div class="float float-b" id="float-b" hidden><span class="tick" aria-hidden="true">$</span><span id="float-b-text"></span></div>
+        </div>
       </div>
-      <div class="chips" id="chips" role="group" aria-label="Montos comunes"></div>
-      <p class="warn" id="amount-note" hidden></p>
     </div>
-    <div>
-      <span class="label" id="country-label">¿A qué país?</span>
-      <div class="countries" id="countries" role="group" aria-labelledby="country-label"></div>
+  </header>
+
+  <section class="band" id="opciones" aria-labelledby="list-title">
+    <div class="inner">
+      <div class="section-head">
+        <h2 class="section-title" id="list-title">Todas las opciones</h2>
+        <p>De más a menos dinero recibido</p>
+      </div>
+      <ol class="list" id="list"></ol>
+      <section class="crypto" id="crypto" hidden></section>
     </div>
   </section>
 
-  <section class="answer" id="answer" aria-live="polite"></section>
-
-  <section aria-labelledby="list-title">
-    <div class="section-head">
-      <h2 id="list-title">Todas las opciones</h2>
-      <p>De más a menos dinero recibido</p>
+  <section class="band story" aria-labelledby="story-title">
+    <div class="inner story-grid">
+      <div class="photos">
+        <img class="main" src="/img/familia-abrazo.webp" alt="Una mamá y su hija abrazadas y sonriendo" width="1100" height="733" loading="lazy">
+        <img class="inset" src="/img/mujer-telefono.webp" alt="Una joven ríe mientras mira su teléfono" width="800" height="1067" loading="lazy">
+        <div class="badge" id="story-badge"><b>Hasta 8%</b>más dinero al comparar</div>
+      </div>
+      <div class="story-copy">
+        <p class="eyebrow">Hecho para familias como la tuya</p>
+        <h2 class="section-title" id="story-title">Cada dólar que mandas es un esfuerzo. Que no se pierda en comisiones.</h2>
+        <p>Muchos servicios cobran una comisión pequeña y se quedan otra parte en el tipo de cambio. Manda Más te enseña el número que importa: cuánto llega a las manos de tu familia.</p>
+        <ul class="perks">
+          <li><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span><div><b>Precios en vivo</b><span>Consultamos los precios en el momento en que abres la página.</span></div></li>
+          <li><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 15h3"/></svg></span><div><b>Hasta 10 servicios lado a lado</b><span>Remitly, Western Union, Xoom, Wise, bancos y más.</span></div></li>
+          <li><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></span><div><b>Gratis y sin registro</b><span>No pedimos tus datos ni tocamos tu dinero.</span></div></li>
+        </ul>
+      </div>
     </div>
-    <ol class="list" id="list" style="margin-top:12px"></ol>
   </section>
 
-  <section class="crypto" id="crypto" hidden></section>
-
-  <section class="learn" aria-labelledby="learn-title">
-    <h2 id="learn-title">¿Por qué llega diferente cantidad?</h2>
-    <dl class="terms" id="terms"></dl>
+  <section class="band" id="como-funciona" aria-labelledby="how-title">
+    <div class="inner">
+      <p class="eyebrow" style="color:var(--mango-deep)">Cómo funciona</p>
+      <h2 class="section-title" id="how-title">Tres pasos y listo</h2>
+      <ol class="steps">
+        <li class="step"><h3>Escribe cuánto vas a mandar</h3><p>En dólares, y elige el país de tu familia.</p></li>
+        <li class="step"><h3>Compara cuánto recibe</h3><p>Ordenamos los servicios de más a menos dinero recibido, con comisión y tipo de cambio incluidos.</p></li>
+        <li class="step"><h3>Manda con el que más te conviene</h3><p>Toca "Ir a…" y haz el envío directamente en la app del servicio.</p></li>
+      </ol>
+      <figure class="banner" style="margin:28px 0 0">
+        <img src="/img/familia-ensenada.webp" alt="Una familia de seis personas sonriendo en un campo de flores en Ensenada, Baja California" width="1400" height="700" loading="lazy">
+        <blockquote>Cada peso cuenta. <span>Por eso comparamos.</span></blockquote>
+      </figure>
+    </div>
   </section>
 
-  <section class="faq" aria-labelledby="faq-title">
-    <h2 id="faq-title">Preguntas frecuentes</h2>
-    <details>
-      <summary>¿Cuál es la forma más barata de mandar dinero?</summary>
-      <p>Depende del día, del país y de cuánto mandes. Un servicio puede ser el más barato para $200 y no para $1,000. Por eso conviene comparar cada vez: escribe tu cantidad y fíjate en cuánto recibe tu familia.</p>
-    </details>
-    <details>
-      <summary>¿Por qué un envío "sin comisión" puede salir más caro?</summary>
-      <p>Porque el servicio puede darte un tipo de cambio peor que el real y quedarse la diferencia. No lo ves como comisión, pero tu familia recibe menos. Lo que cuenta es la cantidad final que llega.</p>
-    </details>
-    <details>
-      <summary>¿Qué tan actualizados están los precios?</summary>
-      <p>Al abrir la página consultamos los precios en ese momento, y también los revisamos cada hora. Cada servicio actualiza su precio a su propio ritmo, así que confirma el monto final en su app antes de pagar.</p>
-    </details>
-    <details>
-      <summary>¿Manda Más cobra algo o maneja mi dinero?</summary>
-      <p>No. Manda Más solo compara precios públicos. El envío lo haces directamente con el servicio que elijas.</p>
-    </details>
-    <details>
-      <summary>¿Es seguro mandar dólares digitales?</summary>
-      <p>Puede costar menos, pero tiene riesgos: si te equivocas de dirección o de red, el dinero se pierde, y tu familia necesita una cuenta en una app como Bitso. Si nunca lo has hecho, empieza con una prueba pequeña.</p>
-    </details>
+  <section class="band" aria-label="Aprende y preguntas frecuentes" id="preguntas">
+    <div class="inner learn-grid">
+      <div>
+        <h2 class="section-title" id="learn-title">¿Por qué llega diferente cantidad?</h2>
+        <dl class="terms" id="terms"></dl>
+      </div>
+      <div class="faq">
+        <h2 class="section-title" id="faq-title">Preguntas frecuentes</h2>
+        <details>
+          <summary>¿Cuál es la forma más barata de mandar dinero?</summary>
+          <p>Depende del día, del país y de cuánto mandes. Un servicio puede ser el más barato para $200 y no para $1,000. Por eso conviene comparar cada vez: escribe tu cantidad y fíjate en cuánto recibe tu familia.</p>
+        </details>
+        <details>
+          <summary>¿Por qué un envío "sin comisión" puede salir más caro?</summary>
+          <p>Porque el servicio puede darte un tipo de cambio peor que el real y quedarse la diferencia. No lo ves como comisión, pero tu familia recibe menos. Lo que cuenta es la cantidad final que llega.</p>
+        </details>
+        <details>
+          <summary>¿Qué tan actualizados están los precios?</summary>
+          <p>Al abrir la página consultamos los precios en ese momento, y también los revisamos cada hora. Cada servicio actualiza su precio a su propio ritmo, así que confirma el monto final en su app antes de pagar.</p>
+        </details>
+        <details>
+          <summary>¿Manda Más cobra algo o maneja mi dinero?</summary>
+          <p>No. Manda Más solo compara precios públicos. El envío lo haces directamente con el servicio que elijas.</p>
+        </details>
+        <details>
+          <summary>¿Es seguro mandar dólares digitales?</summary>
+          <p>Puede costar menos, pero tiene riesgos: si te equivocas de dirección o de red, el dinero se pierde, y tu familia necesita una cuenta en una app como Bitso. Si nunca lo has hecho, empieza con una prueba pequeña.</p>
+        </details>
+      </div>
+    </div>
   </section>
 
-  <!--COUNTRY_LINKS-->
-
-  <footer>
-    <p id="stamp"></p>
-    <p>Manda Más no mueve tu dinero. Comparamos precios públicos de cada servicio. Confirma el precio final en la app del servicio antes de enviar.</p>
-    <p>Algunos botones "Ir a…" pueden ser enlaces de afiliado: si mandas dinero desde ellos, Manda Más puede recibir una comisión sin costo para ti. Eso nunca cambia el orden de la lista, que siempre va de más a menos dinero recibido.</p>
-    <p>Fuentes: comparador público de Wise (precios de cada servicio) y Bitso (dólares digitales).</p>
+  <footer class="foot">
+    <div class="inner">
+      <a class="logo" href="#top"><span class="logo-mark" aria-hidden="true">$</span><span>Manda <span class="mas">Más</span></span></a>
+      <!--COUNTRY_LINKS-->
+      <p id="stamp"></p>
+      <p>Manda Más no mueve tu dinero. Comparamos precios públicos de cada servicio. Confirma el precio final en la app del servicio antes de enviar.</p>
+      <p>Algunos botones "Ir a…" pueden ser enlaces de afiliado: si mandas dinero desde ellos, Manda Más puede recibir una comisión sin costo para ti. Eso nunca cambia el orden de la lista, que siempre va de más a menos dinero recibido.</p>
+      <p>Fuentes: comparador público de Wise (precios de cada servicio) y Bitso (dólares digitales). Fotos de Unsplash: <a href="https://unsplash.com/@jackhammer">@jackhammer</a>, <a href="https://unsplash.com/@ghenmar">@ghenmar</a> y <a href="https://unsplash.com/@josuemichelphotography">@josuemichelphotography</a>.</p>
+    </div>
   </footer>
 </div>
 
-<script id="rates" type="application/json">{"collected":"2026-10-23T00:27:37+00:00","brackets":[50,100,150,200,250,300,400,500,600,750,1000,1500,2000],"countries":[{"code":"MX","name":"México","currency":"MXN","currencyName":"pesos","mid":18.734299999995212,"providers":{"Remitly":{"50":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"100":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"150":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"200":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"250":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"300":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"400":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"500":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"600":{"fee":1.99,"rate":18.5542616141,"markup":0.96100941,"at":"2026-10-22T23:44:36.176878Z"},"750":{"fee":1.99,"rate":18.5542616141,"markup":0.96100941,"at":"2026-10-22T23:44:36.176878Z"},"1000":{"fee":1.99,"rate":18.5542616141,"markup":0.96100941,"at":"2026-10-22T23:44:36.176878Z"},"1500":{"fee":1.99,"rate":18.5542616141,"markup":0.96100941,"at":"2026-10-22T23:44:36.176878Z"},"2000":{"fee":1.99,"rate":18.5542616141,"markup":0.96100941,"at":"2026-10-22T23:44:36.176878Z"}},"Instarem":{"50":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"100":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"150":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"200":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"250":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"300":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"400":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"500":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"600":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"750":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"1000":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"1500":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"2000":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"}},"Chase (US)":{"50":{"fee":5.0,"rate":18.1616975316,"markup":3.05643909,"at":"2026-10-20T15:01:20Z"},"100":{"fee":5.0,"rate":18.1616975316,"markup":3.05643909,"at":"2026-10-20T15:01:20Z"},"150":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"200":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"250":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"300":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"400":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"500":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"600":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"750":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"1000":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"1500":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"2000":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"}},"Wells Fargo":{"50":{"fee":0.0,"rate":18.1454928904,"markup":3.14293627,"at":"2026-10-20T16:27:43Z"},"100":{"fee":0.0,"rate":18.1454928904,"markup":3.14293627,"at":"2026-10-20T16:27:43Z"},"150":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"200":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"250":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"300":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"400":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"500":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"600":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"750":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"1000":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"1500":{"fee":0.0,"rate":18.1451877049,"markup":3.14456529,"at":"2026-10-20T16:27:43Z"},"2000":{"fee":0.0,"rate":18.1451877049,"markup":3.14456529,"at":"2026-10-20T16:27:43Z"}},"WorldRemit":{"50":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"100":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"150":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"200":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"250":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"300":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"400":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"500":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"600":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"750":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"1000":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"1500":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"2000":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"}},"Western Union":{"50":{"fee":1.99,"rate":18.3332917671,"markup":2.14050289,"at":"2026-10-22T23:17:02.076238Z"},"100":{"fee":1.99,"rate":18.3332917671,"markup":2.14050289,"at":"2026-10-22T23:17:02.076238Z"},"150":{"fee":1.99,"rate":18.3332917671,"markup":2.14050289,"at":"2026-10-22T23:17:02.076238Z"},"200":{"fee":1.99,"rate":18.3332917671,"markup":2.14050289,"at":"2026-10-22T23:17:02.076238Z"},"250":{"fee":1.99,"rate":18.3332917671,"markup":2.14050289,"at":"2026-10-22T23:17:02.076238Z"},"300":{"fee":1.99,"rate":18.3332917671,"markup":2.14050289,"at":"2026-10-22T23:17:02.076238Z"},"400":{"fee":1.99,"rate":18.4643925382,"markup":1.44071282,"at":"2026-10-22T23:17:02.076238Z"},"500":{"fee":1.99,"rate":18.4643925382,"markup":1.44071282,"at":"2026-10-22T23:17:02.076238Z"},"600":{"fee":1.99,"rate":18.4643925382,"markup":1.44071282,"at":"2026-10-22T23:17:02.076238Z"},"750":{"fee":1.99,"rate":18.4643925382,"markup":1.44071282,"at":"2026-10-22T23:17:02.076238Z"},"1000":{"fee":1.99,"rate":18.4643925382,"markup":1.44071282,"at":"2026-10-22T23:17:02.076238Z"},"1500":{"fee":1.99,"rate":18.4643925382,"markup":1.44071282,"at":"2026-10-22T23:17:02.076238Z"},"2000":{"fee":1.99,"rate":18.4643925382,"markup":1.44071282,"at":"2026-10-22T23:17:02.076238Z"}},"PayPal":{"50":{"fee":2.5,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"100":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"150":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"200":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"250":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"300":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"400":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"500":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"600":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"750":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"1000":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"1500":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"2000":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"}},"Wise":{"50":{"fee":7.33,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:37Z"},"100":{"fee":7.59,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:38Z"},"150":{"fee":7.83,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:38Z"},"200":{"fee":8.09,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:39Z"},"250":{"fee":8.33,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:39Z"},"300":{"fee":8.59,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:40Z"},"400":{"fee":9.09,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:41Z"},"500":{"fee":9.59,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:41Z"},"600":{"fee":10.07,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:42Z"},"750":{"fee":10.82,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:42Z"},"1000":{"fee":12.07,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:43Z"},"1500":{"fee":14.56,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:43Z"},"2000":{"fee":17.05,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:44Z"}},"Xoom":{"50":{"fee":0.0,"rate":19.0021324339,"markup":-1.42963673,"at":"2026-10-22T06:58:08.562843Z"},"100":{"fee":0.0,"rate":19.0021324339,"markup":-1.42963673,"at":"2026-10-22T06:58:08.562843Z"},"150":{"fee":0.0,"rate":19.0021324339,"markup":-1.42963673,"at":"2026-10-22T06:58:08.562843Z"},"200":{"fee":0.0,"rate":19.0021324339,"markup":-1.42963673,"at":"2026-10-22T06:58:08.562843Z"},"250":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"300":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"400":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"500":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"600":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"750":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"1000":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"1500":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"2000":{"fee":0.0,"rate":18.7326035941,"markup":0.00905508,"at":"2026-10-22T06:58:08.562843Z"}},"OFX":{"200":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"250":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"300":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"400":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"500":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"600":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"750":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"1000":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"1500":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"2000":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"}}},"stablecoin":{"source":"Bitso USDT/MXN","bid":18.712}},{"code":"GT","name":"Guatemala","currency":"GTQ","currencyName":"quetzales","mid":7.642749999994431,"providers":{"Remitly":{"50":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"100":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"150":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"200":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"250":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"300":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"400":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"500":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"600":{"fee":1.99,"rate":7.5469319766,"markup":1.25371134,"at":"2026-10-22T23:44:24.613757Z"},"750":{"fee":1.99,"rate":7.5469319766,"markup":1.25371134,"at":"2026-10-22T23:44:24.613757Z"},"1000":{"fee":1.99,"rate":7.5469319766,"markup":1.25371134,"at":"2026-10-22T23:44:24.613757Z"},"1500":{"fee":1.99,"rate":7.5469319766,"markup":1.25371134,"at":"2026-10-22T23:44:24.613757Z"},"2000":{"fee":1.99,"rate":7.5469319766,"markup":1.25371134,"at":"2026-10-22T23:44:24.613757Z"}},"Xoom":{"50":{"fee":0.99,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"100":{"fee":1.89,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"150":{"fee":2.79,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"200":{"fee":3.69,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"250":{"fee":4.69,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"300":{"fee":5.49,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"400":{"fee":7.29,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"500":{"fee":9.09,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"600":{"fee":9.29,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"750":{"fee":11.59,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"1000":{"fee":15.49,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"1500":{"fee":21.79,"rate":7.6340498289,"markup":0.11383561,"at":"2026-10-22T06:47:12.695053Z"},"2000":{"fee":28.99,"rate":7.6340498289,"markup":0.11383561,"at":"2026-10-22T06:47:12.695053Z"}},"Instarem":{"50":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"100":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"150":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"200":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"250":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"300":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"400":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"500":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"600":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"750":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"1000":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"1500":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"2000":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"}},"Western Union":{"50":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"100":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"150":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"200":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"250":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"300":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"400":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"500":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"600":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"750":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"1000":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"1500":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"2000":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"}},"Wise":{"50":{"fee":14.47,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:45Z"},"100":{"fee":15.9,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:45Z"},"150":{"fee":17.33,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:46Z"},"200":{"fee":18.77,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:47Z"},"250":{"fee":20.2,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:47Z"},"300":{"fee":21.63,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:10Z"},"400":{"fee":24.5,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:48Z"},"500":{"fee":27.36,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:49Z"},"600":{"fee":30.23,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:49Z"},"750":{"fee":34.53,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:50Z"},"1000":{"fee":41.69,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:51Z"},"1500":{"fee":56.02,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:51Z"},"2000":{"fee":70.34,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:52Z"}}},"stablecoin":null},{"code":"HN","name":"Honduras","currency":"HNL","currencyName":"lempiras","mid":26.954499999981,"providers":{"Western Union":{"50":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"100":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"150":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"200":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"250":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"300":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"400":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"500":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"600":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"750":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"1000":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"1500":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"2000":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"}},"Wise":{"50":{"fee":14.73,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:52Z"},"100":{"fee":16.5,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:53Z"},"150":{"fee":18.28,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:53Z"},"200":{"fee":20.06,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:54Z"},"250":{"fee":21.84,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:55Z"},"300":{"fee":23.62,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:55Z"},"400":{"fee":27.18,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:56Z"},"500":{"fee":30.73,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:56Z"},"600":{"fee":34.29,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:57Z"},"750":{"fee":39.63,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:57Z"},"1000":{"fee":48.53,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:58Z"},"1500":{"fee":66.32,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:59Z"},"2000":{"fee":84.12,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:59Z"}},"Xoom":{"50":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"100":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"150":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"200":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"250":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"300":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"400":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"500":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"600":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"750":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"1000":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"1500":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"2000":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"}}},"stablecoin":null},{"code":"SV","name":"El Salvador","currency":"USD","currencyName":"dólares","mid":1.0,"providers":{"Wise":{"50":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:00Z"},"100":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:00Z"},"150":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:01Z"},"200":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:01Z"},"250":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:02Z"},"300":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:03Z"},"400":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:03Z"},"500":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:04Z"},"600":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:04Z"},"750":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:05Z"},"1000":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:05Z"},"1500":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:06Z"},"2000":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:07Z"}}},"stablecoin":null},{"code":"DO","name":"República Dominicana","currency":"DOP","currencyName":"pesos dominicanos","mid":61.03,"providers":{"Instarem":{"50":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"100":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"150":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"200":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"250":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"300":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"400":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"500":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"600":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"750":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"1000":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"1500":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"2000":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"}},"Wise":{"50":{"fee":15.13,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:07Z"},"100":{"fee":17.48,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:08Z"},"150":{"fee":19.82,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:08Z"},"200":{"fee":22.17,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:09Z"},"250":{"fee":24.52,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:09Z"},"300":{"fee":26.86,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:10Z"},"400":{"fee":31.54,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:11Z"},"500":{"fee":36.24,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:11Z"},"600":{"fee":40.93,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:12Z"},"750":{"fee":47.96,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:12Z"},"1000":{"fee":59.69,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:13Z"},"1500":{"fee":83.13,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:14Z"},"2000":{"fee":106.58,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:14Z"}},"Western Union":{"50":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"100":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"150":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"200":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"250":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"300":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"400":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"500":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"600":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"750":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"1000":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"1500":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"2000":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"}},"Xoom":{"50":{"fee":0.0,"rate":56.3355156055,"markup":7.69209306,"at":"2026-10-22T06:35:02.702891Z"},"100":{"fee":0.0,"rate":56.3355156055,"markup":7.69209306,"at":"2026-10-22T06:35:02.702891Z"},"150":{"fee":0.0,"rate":57.5611741014,"markup":5.68380452,"at":"2026-10-22T06:35:02.702891Z"},"200":{"fee":0.0,"rate":57.5611741014,"markup":5.68380452,"at":"2026-10-22T06:35:02.702891Z"},"250":{"fee":0.0,"rate":58.4198161935,"markup":4.27688646,"at":"2026-10-22T06:35:02.702891Z"},"300":{"fee":0.0,"rate":58.4198161935,"markup":4.27688646,"at":"2026-10-22T06:35:02.702891Z"},"400":{"fee":0.0,"rate":58.4198161935,"markup":4.27688646,"at":"2026-10-22T06:35:02.702891Z"},"500":{"fee":0.0,"rate":59.0178205404,"markup":3.29703336,"at":"2026-10-22T06:35:02.702891Z"},"600":{"fee":0.0,"rate":59.0178205404,"markup":3.29703336,"at":"2026-10-22T06:35:02.702891Z"},"750":{"fee":0.0,"rate":59.0178205404,"markup":3.29703336,"at":"2026-10-22T06:35:02.702891Z"},"1000":{"fee":0.0,"rate":59.2665382599,"markup":2.88949982,"at":"2026-10-22T06:35:02.702891Z"},"1500":{"fee":0.0,"rate":59.2665382599,"markup":2.88949982,"at":"2026-10-22T06:35:02.702891Z"},"2000":{"fee":0.0,"rate":59.5211659109,"markup":2.47228263,"at":"2026-10-22T06:35:02.702891Z"}}},"stablecoin":null},{"code":"CO","name":"Colombia","currency":"COP","currencyName":"pesos colombianos","mid":3182.6300000000115,"providers":{"Instarem":{"50":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"100":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"150":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"200":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"250":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"300":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"400":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"500":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"600":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"750":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"1000":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"1500":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"2000":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"}},"Remitly":{"50":{"fee":3.99,"rate":3139.6101350431,"markup":1.35170802,"at":"2026-10-22T23:44:18.675695Z"},"100":{"fee":3.99,"rate":3139.6101350431,"markup":1.35170802,"at":"2026-10-22T23:44:18.675695Z"},"150":{"fee":3.99,"rate":3139.6101350431,"markup":1.35170802,"at":"2026-10-22T23:44:18.675695Z"},"200":{"fee":3.99,"rate":3139.6101350431,"markup":1.35170802,"at":"2026-10-22T23:44:18.675695Z"},"250":{"fee":3.99,"rate":3139.6101350431,"markup":1.35170802,"at":"2026-10-22T23:44:18.675695Z"},"300":{"fee":3.99,"rate":3139.6101350431,"markup":1.35170802,"at":"2026-10-22T23:44:18.675695Z"},"400":{"fee":3.99,"rate":3139.6101350431,"markup":1.35170802,"at":"2026-10-22T23:44:18.675695Z"},"500":{"fee":0.0,"rate":3145.0301182876,"markup":1.18140914,"at":"2026-10-22T23:44:18.675695Z"},"600":{"fee":0.0,"rate":3145.0301182876,"markup":1.18140914,"at":"2026-10-22T23:44:18.675695Z"},"750":{"fee":0.0,"rate":3145.0301182876,"markup":1.18140914,"at":"2026-10-22T23:44:18.675695Z"},"1000":{"fee":0.0,"rate":3145.0301182876,"markup":1.18140914,"at":"2026-10-22T23:44:18.675695Z"},"1500":{"fee":0.0,"rate":3145.0301182876,"markup":1.18140914,"at":"2026-10-22T23:44:18.675695Z"},"2000":{"fee":0.0,"rate":3145.0301182876,"markup":1.18140914,"at":"2026-10-22T23:44:18.675695Z"}},"Xoom":{"50":{"fee":0.0,"rate":2921.9466015494,"markup":8.19081698,"at":"2026-10-22T06:31:38.087797Z"},"100":{"fee":0.0,"rate":2921.9466015494,"markup":8.19081698,"at":"2026-10-22T06:31:38.087797Z"},"150":{"fee":0.0,"rate":3020.5418943356,"markup":5.09289819,"at":"2026-10-22T06:31:38.087797Z"},"200":{"fee":0.0,"rate":3020.5418943356,"markup":5.09289819,"at":"2026-10-22T06:31:38.087797Z"},"250":{"fee":0.0,"rate":3067.1619885401,"markup":3.62806897,"at":"2026-10-22T06:31:38.087797Z"},"300":{"fee":0.0,"rate":3067.1619885401,"markup":3.62806897,"at":"2026-10-22T06:31:38.087797Z"},"400":{"fee":0.0,"rate":3067.1619885401,"markup":3.62806897,"at":"2026-10-22T06:31:38.087797Z"},"500":{"fee":0.0,"rate":3084.802043126,"markup":3.07380867,"at":"2026-10-22T06:31:38.087797Z"},"600":{"fee":0.0,"rate":3084.802043126,"markup":3.07380867,"at":"2026-10-22T06:31:38.087797Z"},"750":{"fee":0.0,"rate":3084.802043126,"markup":3.07380867,"at":"2026-10-22T06:31:38.087797Z"},"1000":{"fee":0.0,"rate":3087.3220511513,"markup":2.99462862,"at":"2026-10-22T06:31:38.087797Z"},"1500":{"fee":0.0,"rate":3087.3220511513,"markup":2.99462862,"at":"2026-10-22T06:31:38.087797Z"},"2000":{"fee":0.0,"rate":3098.347047792,"markup":2.64821711,"at":"2026-10-22T06:31:38.087797Z"}},"Wise":{"50":{"fee":8.47,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:15Z"},"100":{"fee":9.16,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:15Z"},"150":{"fee":9.83,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:16Z"},"200":{"fee":10.52,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:16Z"},"250":{"fee":11.19,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:17Z"},"300":{"fee":11.88,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:18Z"},"400":{"fee":13.24,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:18Z"},"500":{"fee":14.6,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:19Z"},"600":{"fee":15.96,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:19Z"},"750":{"fee":18.0,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:20Z"},"1000":{"fee":21.4,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:20Z"},"1500":{"fee":28.22,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:21Z"},"2000":{"fee":35.03,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:22Z"}},"Western Union":{"50":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"100":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"150":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"200":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"250":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"300":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"400":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"500":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"600":{"fee":1.99,"rate":3144.248020701,"markup":1.20598308,"at":"2026-10-22T23:16:34.269679Z"},"750":{"fee":1.99,"rate":3144.248020701,"markup":1.20598308,"at":"2026-10-22T23:16:34.269679Z"},"1000":{"fee":1.99,"rate":3144.248020701,"markup":1.20598308,"at":"2026-10-22T23:16:34.269679Z"},"1500":{"fee":1.99,"rate":3144.248020701,"markup":1.20598308,"at":"2026-10-22T23:16:34.269679Z"},"2000":{"fee":1.99,"rate":3144.248020701,"markup":1.20598308,"at":"2026-10-22T23:16:34.269679Z"}}},"stablecoin":{"source":"Bitso USDT/COP","bid":3166.8}},{"code":"CR","name":"Costa Rica","currency":"CRC","currencyName":"colones","mid":454.23999999997545,"providers":{"Remitly":{"50":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"100":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"150":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"200":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"250":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"300":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"400":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"500":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"600":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"750":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"1000":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"1500":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"2000":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"}},"Western Union":{"50":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"100":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"150":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"200":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"250":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"300":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"400":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"500":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"600":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"750":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"1000":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"1500":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"2000":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"}},"Wise":{"50":{"fee":12.57,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:22Z"},"100":{"fee":13.23,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:23Z"},"150":{"fee":13.88,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:24Z"},"200":{"fee":14.53,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:24Z"},"250":{"fee":15.18,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:25Z"},"300":{"fee":15.83,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:25Z"},"400":{"fee":17.14,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:26Z"},"500":{"fee":18.43,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:27Z"},"600":{"fee":19.74,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:27Z"},"750":{"fee":21.69,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:28Z"},"1000":{"fee":24.96,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:28Z"},"1500":{"fee":31.47,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:29Z"},"2000":{"fee":37.97,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:29Z"}}},"stablecoin":null}]}</script>
+<script id="rates" type="application/json">{"collected":"2026-10-27T19:51:07+00:00","brackets":[50,100,150,200,250,300,400,500,600,750,1000,1500,2000],"countries":[{"code":"MX","name":"México","currency":"MXN","currencyName":"pesos","mid":18.679299999988395,"providers":{"Western Union":{"50":{"fee":1.99,"rate":18.2195067666,"markup":2.46151212,"at":"2026-10-27T19:15:50.047675Z"},"100":{"fee":1.99,"rate":18.2195067666,"markup":2.46151212,"at":"2026-10-27T19:15:50.047675Z"},"150":{"fee":1.99,"rate":18.2195067666,"markup":2.46151212,"at":"2026-10-27T19:15:50.047675Z"},"200":{"fee":1.99,"rate":18.2195067666,"markup":2.46151212,"at":"2026-10-27T19:15:50.047675Z"},"250":{"fee":1.99,"rate":18.2195067666,"markup":2.46151212,"at":"2026-10-27T19:15:50.047675Z"},"300":{"fee":1.99,"rate":18.2195067666,"markup":2.46151212,"at":"2026-10-27T19:15:50.047675Z"},"400":{"fee":1.99,"rate":18.3498481537,"markup":1.76372694,"at":"2026-10-27T19:15:50.047675Z"},"500":{"fee":1.99,"rate":18.3498481537,"markup":1.76372694,"at":"2026-10-27T19:15:50.047675Z"},"600":{"fee":1.99,"rate":18.3498481537,"markup":1.76372694,"at":"2026-10-27T19:15:50.047675Z"},"750":{"fee":1.99,"rate":18.3498481537,"markup":1.76372694,"at":"2026-10-27T19:15:50.047675Z"},"1000":{"fee":1.99,"rate":18.3498481537,"markup":1.76372694,"at":"2026-10-27T19:15:50.047675Z"},"1500":{"fee":1.99,"rate":18.3498481537,"markup":1.76372694,"at":"2026-10-27T19:15:50.047675Z"},"2000":{"fee":1.99,"rate":18.3498481537,"markup":1.76372694,"at":"2026-10-27T19:15:50.047675Z"}},"Wise":{"50":{"fee":7.33,"rate":18.6792,"markup":0.0,"at":"2026-10-27T19:51:07Z"},"100":{"fee":7.59,"rate":18.6792,"markup":0.0,"at":"2026-10-27T19:51:08Z"},"150":{"fee":7.83,"rate":18.6792,"markup":0.0,"at":"2026-10-27T19:51:09Z"},"200":{"fee":8.09,"rate":18.6792,"markup":0.0,"at":"2026-10-27T19:51:09Z"},"250":{"fee":8.33,"rate":18.6792,"markup":0.0,"at":"2026-10-27T19:51:10Z"},"300":{"fee":8.59,"rate":18.6792,"markup":0.0,"at":"2026-10-27T19:51:10Z"},"400":{"fee":9.09,"rate":18.6792,"markup":0.0,"at":"2026-10-27T19:51:11Z"},"500":{"fee":9.59,"rate":18.6792,"markup":0.0,"at":"2026-10-27T19:51:11Z"},"600":{"fee":10.07,"rate":18.6792,"markup":0.0,"at":"2026-10-27T19:51:12Z"},"750":{"fee":10.82,"rate":18.6792,"markup":0.0,"at":"2026-10-27T19:51:13Z"},"1000":{"fee":12.07,"rate":18.6792,"markup":0.0,"at":"2026-10-27T19:51:13Z"},"1500":{"fee":14.56,"rate":18.6792,"markup":0.0,"at":"2026-10-27T19:51:14Z"},"2000":{"fee":17.05,"rate":18.6792,"markup":0.0,"at":"2026-10-27T19:51:14Z"}},"WorldRemit":{"50":{"fee":1.99,"rate":18.2514525724,"markup":2.29048962,"at":"2026-10-23T21:04:51Z"},"100":{"fee":1.99,"rate":18.2514525724,"markup":2.29048962,"at":"2026-10-23T21:04:51Z"},"150":{"fee":1.99,"rate":18.2514525724,"markup":2.29048962,"at":"2026-10-23T21:04:51Z"},"200":{"fee":1.99,"rate":18.2514525724,"markup":2.29048962,"at":"2026-10-23T21:04:51Z"},"250":{"fee":1.99,"rate":18.2514525724,"markup":2.29048962,"at":"2026-10-23T21:04:51Z"},"300":{"fee":1.99,"rate":18.2514525724,"markup":2.29048962,"at":"2026-10-23T21:04:51Z"},"400":{"fee":1.99,"rate":18.2514525724,"markup":2.29048962,"at":"2026-10-23T21:04:51Z"},"500":{"fee":1.99,"rate":18.2514525724,"markup":2.29048962,"at":"2026-10-23T21:04:51Z"},"600":{"fee":1.99,"rate":18.2514525724,"markup":2.29048962,"at":"2026-10-23T21:04:51Z"},"750":{"fee":1.99,"rate":18.2514525724,"markup":2.29048962,"at":"2026-10-23T21:04:51Z"},"1000":{"fee":1.99,"rate":18.2514525724,"markup":2.29048962,"at":"2026-10-23T21:04:51Z"},"1500":{"fee":1.99,"rate":18.2514525724,"markup":2.29048962,"at":"2026-10-23T21:04:51Z"},"2000":{"fee":1.99,"rate":18.2514525724,"markup":2.29048962,"at":"2026-10-23T21:04:51Z"}},"PayPal":{"50":{"fee":2.5,"rate":17.7692992231,"markup":4.87170706,"at":"2026-10-27T19:40:07.942326Z"},"100":{"fee":4.99,"rate":17.7692992231,"markup":4.87170706,"at":"2026-10-27T19:40:07.942326Z"},"150":{"fee":4.99,"rate":17.7692992231,"markup":4.87170706,"at":"2026-10-27T19:40:07.942326Z"},"200":{"fee":4.99,"rate":17.7692992231,"markup":4.87170706,"at":"2026-10-27T19:40:07.942326Z"},"250":{"fee":4.99,"rate":17.7692992231,"markup":4.87170706,"at":"2026-10-27T19:40:07.942326Z"},"300":{"fee":4.99,"rate":17.7692992231,"markup":4.87170706,"at":"2026-10-27T19:40:07.942326Z"},"400":{"fee":4.99,"rate":17.7692992231,"markup":4.87170706,"at":"2026-10-27T19:40:07.942326Z"},"500":{"fee":4.99,"rate":17.7692992231,"markup":4.87170706,"at":"2026-10-27T19:40:07.942326Z"},"600":{"fee":4.99,"rate":17.7692992231,"markup":4.87170706,"at":"2026-10-27T19:40:07.942326Z"},"750":{"fee":4.99,"rate":17.7692992231,"markup":4.87170706,"at":"2026-10-27T19:40:07.942326Z"},"1000":{"fee":4.99,"rate":17.7692992231,"markup":4.87170706,"at":"2026-10-27T19:40:07.942326Z"},"1500":{"fee":4.99,"rate":17.7692992231,"markup":4.87170706,"at":"2026-10-27T19:40:07.942326Z"},"2000":{"fee":4.99,"rate":17.7692992231,"markup":4.87170706,"at":"2026-10-27T19:40:07.942326Z"}},"Xoom":{"50":{"fee":0.0,"rate":18.9385055256,"markup":-1.38766188,"at":"2026-10-27T05:20:58.660957Z"},"100":{"fee":0.0,"rate":18.9385055256,"markup":-1.38766188,"at":"2026-10-27T05:20:58.660957Z"},"150":{"fee":0.0,"rate":18.9385055256,"markup":-1.38766188,"at":"2026-10-27T05:20:58.660957Z"},"200":{"fee":0.0,"rate":18.9385055256,"markup":-1.38766188,"at":"2026-10-27T05:20:58.660957Z"},"250":{"fee":0.0,"rate":18.9401154963,"markup":-1.39628089,"at":"2026-10-27T05:20:58.660957Z"},"300":{"fee":0.0,"rate":18.9401154963,"markup":-1.39628089,"at":"2026-10-27T05:20:58.660957Z"},"400":{"fee":0.0,"rate":18.9401154963,"markup":-1.39628089,"at":"2026-10-27T05:20:58.660957Z"},"500":{"fee":0.0,"rate":18.9401154963,"markup":-1.39628089,"at":"2026-10-27T05:20:58.660957Z"},"600":{"fee":0.0,"rate":18.9401154963,"markup":-1.39628089,"at":"2026-10-27T05:20:58.660957Z"},"750":{"fee":0.0,"rate":18.9401154963,"markup":-1.39628089,"at":"2026-10-27T05:20:58.660957Z"},"1000":{"fee":0.0,"rate":18.9401154963,"markup":-1.39628089,"at":"2026-10-27T05:20:58.660957Z"},"1500":{"fee":0.0,"rate":18.9401154963,"markup":-1.39628089,"at":"2026-10-27T05:20:58.660957Z"},"2000":{"fee":0.0,"rate":18.6698414133,"markup":0.05063673,"at":"2026-10-27T05:20:58.660957Z"}},"Wells Fargo":{"50":{"fee":0.0,"rate":18.1023262408,"markup":3.08884037,"at":"2026-10-27T16:18:42Z"},"100":{"fee":0.0,"rate":18.1023262408,"markup":3.08884037,"at":"2026-10-27T16:18:42Z"},"150":{"fee":0.0,"rate":18.1030276672,"markup":3.08508527,"at":"2026-10-27T16:18:59Z"},"200":{"fee":0.0,"rate":18.1030276672,"markup":3.08508527,"at":"2026-10-27T16:18:59Z"},"250":{"fee":0.0,"rate":18.1030276672,"markup":3.08508527,"at":"2026-10-27T16:18:59Z"},"300":{"fee":0.0,"rate":18.1030276672,"markup":3.08508527,"at":"2026-10-27T16:18:59Z"},"400":{"fee":0.0,"rate":18.1030276672,"markup":3.08508527,"at":"2026-10-27T16:18:59Z"},"500":{"fee":0.0,"rate":18.1030276672,"markup":3.08508527,"at":"2026-10-27T16:18:59Z"},"600":{"fee":0.0,"rate":18.1030276672,"markup":3.08508527,"at":"2026-10-27T16:18:59Z"},"750":{"fee":0.0,"rate":18.1030276672,"markup":3.08508527,"at":"2026-10-27T16:18:59Z"},"1000":{"fee":0.0,"rate":18.1030276672,"markup":3.08508527,"at":"2026-10-27T16:18:59Z"},"1500":{"fee":0.0,"rate":18.1056329681,"markup":3.07113774,"at":"2026-10-27T16:19:18Z"},"2000":{"fee":0.0,"rate":18.1056329681,"markup":3.07113774,"at":"2026-10-27T16:19:18Z"}},"Remitly":{"50":{"fee":1.99,"rate":18.0418866422,"markup":3.41240495,"at":"2026-10-27T19:44:50.905513Z"},"100":{"fee":1.99,"rate":18.0418866422,"markup":3.41240495,"at":"2026-10-27T19:44:50.905513Z"},"150":{"fee":1.99,"rate":18.0418866422,"markup":3.41240495,"at":"2026-10-27T19:44:50.905513Z"},"200":{"fee":1.99,"rate":18.0418866422,"markup":3.41240495,"at":"2026-10-27T19:44:50.905513Z"},"250":{"fee":1.99,"rate":18.0418866422,"markup":3.41240495,"at":"2026-10-27T19:44:50.905513Z"},"300":{"fee":1.99,"rate":18.0418866422,"markup":3.41240495,"at":"2026-10-27T19:44:50.905513Z"},"400":{"fee":1.99,"rate":18.0418866422,"markup":3.41240495,"at":"2026-10-27T19:44:50.905513Z"},"500":{"fee":1.99,"rate":18.0418866422,"markup":3.41240495,"at":"2026-10-27T19:44:50.905513Z"},"600":{"fee":1.99,"rate":18.4816888647,"markup":1.0579151,"at":"2026-10-27T19:44:50.905513Z"},"750":{"fee":1.99,"rate":18.4816888647,"markup":1.0579151,"at":"2026-10-27T19:44:50.905513Z"},"1000":{"fee":1.99,"rate":18.4816888647,"markup":1.0579151,"at":"2026-10-27T19:44:50.905513Z"},"1500":{"fee":1.99,"rate":18.4816888647,"markup":1.0579151,"at":"2026-10-27T19:44:50.905513Z"},"2000":{"fee":1.99,"rate":18.4816888647,"markup":1.0579151,"at":"2026-10-27T19:44:50.905513Z"}},"Instarem":{"50":{"fee":0.0,"rate":18.5385919002,"markup":0.75328358,"at":"2026-10-27T18:22:08.454510Z"},"100":{"fee":0.0,"rate":18.5385919002,"markup":0.75328358,"at":"2026-10-27T18:22:08.454510Z"},"150":{"fee":0.0,"rate":18.5385919002,"markup":0.75328358,"at":"2026-10-27T18:22:08.454510Z"},"200":{"fee":0.0,"rate":18.5385919002,"markup":0.75328358,"at":"2026-10-27T18:22:08.454510Z"},"250":{"fee":0.0,"rate":18.5385919002,"markup":0.75328358,"at":"2026-10-27T18:22:08.454510Z"},"300":{"fee":0.0,"rate":18.5385919002,"markup":0.75328358,"at":"2026-10-27T18:22:08.454510Z"},"400":{"fee":0.0,"rate":18.5385919002,"markup":0.75328358,"at":"2026-10-27T18:22:08.454510Z"},"500":{"fee":0.0,"rate":18.5385919002,"markup":0.75328358,"at":"2026-10-27T18:22:08.454510Z"},"600":{"fee":0.0,"rate":18.5385919002,"markup":0.75328358,"at":"2026-10-27T18:22:08.454510Z"},"750":{"fee":0.0,"rate":18.5385919002,"markup":0.75328358,"at":"2026-10-27T18:22:08.454510Z"},"1000":{"fee":0.0,"rate":18.5385919002,"markup":0.75328358,"at":"2026-10-27T18:22:08.454510Z"},"1500":{"fee":0.0,"rate":18.5385919002,"markup":0.75328358,"at":"2026-10-27T18:22:08.454510Z"},"2000":{"fee":0.0,"rate":18.5385919002,"markup":0.75328358,"at":"2026-10-27T18:22:08.454510Z"}},"Chase (US)":{"50":{"fee":5.0,"rate":18.0878055077,"markup":3.1665774,"at":"2026-10-23T22:21:45Z"},"100":{"fee":5.0,"rate":18.0878055077,"markup":3.1665774,"at":"2026-10-23T22:21:45Z"},"150":{"fee":5.0,"rate":18.0878055077,"markup":3.1665774,"at":"2026-10-23T22:22:11Z"},"200":{"fee":5.0,"rate":18.0878055077,"markup":3.1665774,"at":"2026-10-23T22:22:11Z"},"250":{"fee":5.0,"rate":18.0878055077,"markup":3.1665774,"at":"2026-10-23T22:22:11Z"},"300":{"fee":5.0,"rate":18.0878055077,"markup":3.1665774,"at":"2026-10-23T22:22:11Z"},"400":{"fee":5.0,"rate":18.0878055077,"markup":3.1665774,"at":"2026-10-23T22:22:11Z"},"500":{"fee":5.0,"rate":18.0878055077,"markup":3.1665774,"at":"2026-10-23T22:22:11Z"},"600":{"fee":5.0,"rate":18.0878055077,"markup":3.1665774,"at":"2026-10-23T22:22:11Z"},"750":{"fee":5.0,"rate":18.0878055077,"markup":3.1665774,"at":"2026-10-23T22:22:11Z"},"1000":{"fee":5.0,"rate":18.0878055077,"markup":3.1665774,"at":"2026-10-23T22:22:11Z"},"1500":{"fee":5.0,"rate":18.0878055077,"markup":3.1665774,"at":"2026-10-23T22:22:11Z"},"2000":{"fee":5.0,"rate":18.0878055077,"markup":3.1665774,"at":"2026-10-23T22:22:11Z"}},"OFX":{"200":{"fee":5.0,"rate":18.2566760276,"markup":2.26252575,"at":"2026-10-27T18:40:53.313231Z"},"250":{"fee":5.0,"rate":18.2566760276,"markup":2.26252575,"at":"2026-10-27T18:40:53.313231Z"},"300":{"fee":5.0,"rate":18.2566760276,"markup":2.26252575,"at":"2026-10-27T18:40:53.313231Z"},"400":{"fee":5.0,"rate":18.2566760276,"markup":2.26252575,"at":"2026-10-27T18:40:53.313231Z"},"500":{"fee":5.0,"rate":18.2566760276,"markup":2.26252575,"at":"2026-10-27T18:40:53.313231Z"},"600":{"fee":5.0,"rate":18.2566760276,"markup":2.26252575,"at":"2026-10-27T18:40:53.313231Z"},"750":{"fee":5.0,"rate":18.2566760276,"markup":2.26252575,"at":"2026-10-27T18:40:53.313231Z"},"1000":{"fee":5.0,"rate":18.2566760276,"markup":2.26252575,"at":"2026-10-27T18:40:53.313231Z"},"1500":{"fee":5.0,"rate":18.2566760276,"markup":2.26252575,"at":"2026-10-27T18:40:53.313231Z"},"2000":{"fee":5.0,"rate":18.2566760276,"markup":2.26252575,"at":"2026-10-27T18:40:53.313231Z"}}},"stablecoin":{"source":"Bitso USDT/MXN","bid":18.648}},{"code":"GT","name":"Guatemala","currency":"GTQ","currencyName":"quetzales","mid":7.6412599999739985,"providers":{"Wise":{"50":{"fee":14.49,"rate":7.64126,"markup":0.0,"at":"2026-10-27T19:51:15Z"},"100":{"fee":15.95,"rate":7.64126,"markup":0.0,"at":"2026-10-27T19:51:16Z"},"150":{"fee":17.41,"rate":7.64126,"markup":0.0,"at":"2026-10-27T19:51:16Z"},"200":{"fee":18.87,"rate":7.64126,"markup":0.0,"at":"2026-10-27T19:51:17Z"},"250":{"fee":20.33,"rate":7.64126,"markup":0.0,"at":"2026-10-27T19:51:17Z"},"300":{"fee":21.79,"rate":7.64126,"markup":0.0,"at":"2026-10-27T19:51:18Z"},"400":{"fee":24.72,"rate":7.64126,"markup":0.0,"at":"2026-10-27T19:51:19Z"},"500":{"fee":27.64,"rate":7.64126,"markup":0.0,"at":"2026-10-27T19:51:19Z"},"600":{"fee":30.56,"rate":7.64126,"markup":0.0,"at":"2026-10-27T19:51:20Z"},"750":{"fee":34.94,"rate":7.64126,"markup":0.0,"at":"2026-10-27T19:51:20Z"},"1000":{"fee":42.25,"rate":7.64126,"markup":0.0,"at":"2026-10-27T19:51:21Z"},"1500":{"fee":56.86,"rate":7.64126,"markup":0.0,"at":"2026-10-27T19:51:21Z"},"2000":{"fee":71.47,"rate":7.64126,"markup":0.0,"at":"2026-10-27T19:51:22Z"}},"Western Union":{"50":{"fee":1.99,"rate":7.5481,"markup":1.21917066,"at":"2026-10-27T19:15:33.457403Z"},"100":{"fee":1.99,"rate":7.5481,"markup":1.21917066,"at":"2026-10-27T19:15:33.457403Z"},"150":{"fee":1.99,"rate":7.5481,"markup":1.21917066,"at":"2026-10-27T19:15:33.457403Z"},"200":{"fee":1.99,"rate":7.5481,"markup":1.21917066,"at":"2026-10-27T19:15:33.457403Z"},"250":{"fee":1.99,"rate":7.5481,"markup":1.21917066,"at":"2026-10-27T19:15:33.457403Z"},"300":{"fee":1.99,"rate":7.5481,"markup":1.21917066,"at":"2026-10-27T19:15:33.457403Z"},"400":{"fee":1.99,"rate":7.5481,"markup":1.21917066,"at":"2026-10-27T19:15:33.457403Z"},"500":{"fee":1.99,"rate":7.5481,"markup":1.21917066,"at":"2026-10-27T19:15:33.457403Z"},"600":{"fee":1.99,"rate":7.5481,"markup":1.21917066,"at":"2026-10-27T19:15:33.457403Z"},"750":{"fee":1.99,"rate":7.5481,"markup":1.21917066,"at":"2026-10-27T19:15:33.457403Z"},"1000":{"fee":1.99,"rate":7.5481,"markup":1.21917066,"at":"2026-10-27T19:15:33.457403Z"},"1500":{"fee":1.99,"rate":7.5481,"markup":1.21917066,"at":"2026-10-27T19:15:33.457403Z"},"2000":{"fee":1.99,"rate":7.5481,"markup":1.21917066,"at":"2026-10-27T19:15:33.457403Z"}},"Remitly":{"50":{"fee":1.99,"rate":7.4194,"markup":2.90344786,"at":"2026-10-27T19:44:42.652085Z"},"100":{"fee":1.99,"rate":7.4194,"markup":2.90344786,"at":"2026-10-27T19:44:42.652085Z"},"150":{"fee":1.99,"rate":7.4194,"markup":2.90344786,"at":"2026-10-27T19:44:42.652085Z"},"200":{"fee":1.99,"rate":7.4194,"markup":2.90344786,"at":"2026-10-27T19:44:42.652085Z"},"250":{"fee":1.99,"rate":7.4194,"markup":2.90344786,"at":"2026-10-27T19:44:42.652085Z"},"300":{"fee":1.99,"rate":7.4194,"markup":2.90344786,"at":"2026-10-27T19:44:42.652085Z"},"400":{"fee":1.99,"rate":7.4194,"markup":2.90344786,"at":"2026-10-27T19:44:42.652085Z"},"500":{"fee":1.99,"rate":7.4194,"markup":2.90344786,"at":"2026-10-27T19:44:42.652085Z"},"600":{"fee":1.99,"rate":7.5423,"markup":1.29507437,"at":"2026-10-27T19:44:42.652085Z"},"750":{"fee":1.99,"rate":7.5423,"markup":1.29507437,"at":"2026-10-27T19:44:42.652085Z"},"1000":{"fee":1.99,"rate":7.5423,"markup":1.29507437,"at":"2026-10-27T19:44:42.652085Z"},"1500":{"fee":1.99,"rate":7.5423,"markup":1.29507437,"at":"2026-10-27T19:44:42.652085Z"},"2000":{"fee":1.99,"rate":7.5423,"markup":1.29507437,"at":"2026-10-27T19:44:42.652085Z"}},"Xoom":{"50":{"fee":0.99,"rate":7.6734585672,"markup":-0.42137772,"at":"2026-10-27T05:06:12.083330Z"},"100":{"fee":1.89,"rate":7.6734585672,"markup":-0.42137772,"at":"2026-10-27T05:06:12.083330Z"},"150":{"fee":2.79,"rate":7.6734585672,"markup":-0.42137772,"at":"2026-10-27T05:06:12.083330Z"},"200":{"fee":3.69,"rate":7.6734585672,"markup":-0.42137772,"at":"2026-10-27T05:06:12.083330Z"},"250":{"fee":4.69,"rate":7.6734585672,"markup":-0.42137772,"at":"2026-10-27T05:06:12.083330Z"},"300":{"fee":5.49,"rate":7.6734585672,"markup":-0.42137772,"at":"2026-10-27T05:06:12.083330Z"},"400":{"fee":7.29,"rate":7.6734585672,"markup":-0.42137772,"at":"2026-10-27T05:06:12.083330Z"},"500":{"fee":9.09,"rate":7.6734585672,"markup":-0.42137772,"at":"2026-10-27T05:06:12.083330Z"},"600":{"fee":9.29,"rate":7.6734585672,"markup":-0.42137772,"at":"2026-10-27T05:06:12.083330Z"},"750":{"fee":11.59,"rate":7.6734585672,"markup":-0.42137772,"at":"2026-10-27T05:06:12.083330Z"},"1000":{"fee":15.49,"rate":7.6734585672,"markup":-0.42137772,"at":"2026-10-27T05:06:12.083330Z"},"1500":{"fee":21.79,"rate":7.6335603424,"markup":0.10076424,"at":"2026-10-27T05:06:12.083330Z"},"2000":{"fee":28.99,"rate":7.6335603424,"markup":0.10076424,"at":"2026-10-27T05:06:12.083330Z"}},"Instarem":{"50":{"fee":0.0,"rate":7.5892,"markup":0.68130125,"at":"2026-10-27T18:21:23.647189Z"},"100":{"fee":0.0,"rate":7.5892,"markup":0.68130125,"at":"2026-10-27T18:21:23.647189Z"},"150":{"fee":0.0,"rate":7.5892,"markup":0.68130125,"at":"2026-10-27T18:21:23.647189Z"},"200":{"fee":0.0,"rate":7.5892,"markup":0.68130125,"at":"2026-10-27T18:21:23.647189Z"},"250":{"fee":0.0,"rate":7.5892,"markup":0.68130125,"at":"2026-10-27T18:21:23.647189Z"},"300":{"fee":0.0,"rate":7.5892,"markup":0.68130125,"at":"2026-10-27T18:21:23.647189Z"},"400":{"fee":0.0,"rate":7.5892,"markup":0.68130125,"at":"2026-10-27T18:21:23.647189Z"},"500":{"fee":0.0,"rate":7.5892,"markup":0.68130125,"at":"2026-10-27T18:21:23.647189Z"},"600":{"fee":0.0,"rate":7.5892,"markup":0.68130125,"at":"2026-10-27T18:21:23.647189Z"},"750":{"fee":0.0,"rate":7.5892,"markup":0.68130125,"at":"2026-10-27T18:21:23.647189Z"},"1000":{"fee":0.0,"rate":7.5892,"markup":0.68130125,"at":"2026-10-27T18:21:23.647189Z"},"1500":{"fee":0.0,"rate":7.5892,"markup":0.68130125,"at":"2026-10-27T18:21:23.647189Z"},"2000":{"fee":0.0,"rate":7.5892,"markup":0.68130125,"at":"2026-10-27T18:21:23.647189Z"}}},"stablecoin":null},{"code":"HN","name":"Honduras","currency":"HNL","currencyName":"lempiras","mid":26.95110000107416,"providers":{"Western Union":{"50":{"fee":2.99,"rate":26.8964,"markup":0.20296018,"at":"2026-10-27T19:15:33.853356Z"},"100":{"fee":2.99,"rate":26.8964,"markup":0.20296018,"at":"2026-10-27T19:15:33.853356Z"},"150":{"fee":2.99,"rate":26.8964,"markup":0.20296018,"at":"2026-10-27T19:15:33.853356Z"},"200":{"fee":2.99,"rate":26.8964,"markup":0.20296018,"at":"2026-10-27T19:15:33.853356Z"},"250":{"fee":2.99,"rate":26.8964,"markup":0.20296018,"at":"2026-10-27T19:15:33.853356Z"},"300":{"fee":2.99,"rate":26.8964,"markup":0.20296018,"at":"2026-10-27T19:15:33.853356Z"},"400":{"fee":2.99,"rate":26.8964,"markup":0.20296018,"at":"2026-10-27T19:15:33.853356Z"},"500":{"fee":2.99,"rate":26.8964,"markup":0.20296018,"at":"2026-10-27T19:15:33.853356Z"},"600":{"fee":2.99,"rate":26.8964,"markup":0.20296018,"at":"2026-10-27T19:15:33.853356Z"},"750":{"fee":2.99,"rate":26.8964,"markup":0.20296018,"at":"2026-10-27T19:15:33.853356Z"},"1000":{"fee":2.99,"rate":26.8964,"markup":0.20296018,"at":"2026-10-27T19:15:33.853356Z"},"1500":{"fee":2.99,"rate":26.8964,"markup":0.20296018,"at":"2026-10-27T19:15:33.853356Z"},"2000":{"fee":2.99,"rate":26.8964,"markup":0.20296018,"at":"2026-10-27T19:15:33.853356Z"}},"Xoom":{"50":{"fee":4.29,"rate":26.9002,"markup":0.18886057,"at":"2026-10-27T05:06:16.811352Z"},"100":{"fee":4.29,"rate":26.9002,"markup":0.18886057,"at":"2026-10-27T05:06:16.811352Z"},"150":{"fee":4.29,"rate":26.9002,"markup":0.18886057,"at":"2026-10-27T05:06:16.811352Z"},"200":{"fee":4.29,"rate":26.9002,"markup":0.18886057,"at":"2026-10-27T05:06:16.811352Z"},"250":{"fee":4.29,"rate":26.9002,"markup":0.18886057,"at":"2026-10-27T05:06:16.811352Z"},"300":{"fee":4.29,"rate":26.9002,"markup":0.18886057,"at":"2026-10-27T05:06:16.811352Z"},"400":{"fee":4.29,"rate":26.9002,"markup":0.18886057,"at":"2026-10-27T05:06:16.811352Z"},"500":{"fee":4.29,"rate":26.9002,"markup":0.18886057,"at":"2026-10-27T05:06:16.811352Z"},"600":{"fee":4.29,"rate":26.9002,"markup":0.18886057,"at":"2026-10-27T05:06:16.811352Z"},"750":{"fee":4.29,"rate":26.9002,"markup":0.18886057,"at":"2026-10-27T05:06:16.811352Z"},"1000":{"fee":4.29,"rate":26.9002,"markup":0.18886057,"at":"2026-10-27T05:06:16.811352Z"},"1500":{"fee":4.29,"rate":26.9002,"markup":0.18886057,"at":"2026-10-27T05:06:16.811352Z"},"2000":{"fee":4.29,"rate":26.9002,"markup":0.18886057,"at":"2026-10-27T05:06:16.811352Z"}},"Wise":{"50":{"fee":14.72,"rate":26.9511,"markup":0.0,"at":"2026-10-27T19:51:23Z"},"100":{"fee":16.49,"rate":26.9511,"markup":0.0,"at":"2026-10-27T19:51:23Z"},"150":{"fee":18.26,"rate":26.9511,"markup":0.0,"at":"2026-10-27T19:51:24Z"},"200":{"fee":20.03,"rate":26.9511,"markup":0.0,"at":"2026-10-27T19:51:24Z"},"250":{"fee":21.8,"rate":26.9511,"markup":0.0,"at":"2026-10-27T19:51:25Z"},"300":{"fee":23.57,"rate":26.9511,"markup":0.0,"at":"2026-10-27T19:51:26Z"},"400":{"fee":27.1,"rate":26.9511,"markup":0.0,"at":"2026-10-27T19:51:26Z"},"500":{"fee":30.64,"rate":26.9511,"markup":0.0,"at":"2026-10-27T19:51:27Z"},"600":{"fee":34.18,"rate":26.9511,"markup":0.0,"at":"2026-10-27T19:51:27Z"},"750":{"fee":39.5,"rate":26.9511,"markup":0.0,"at":"2026-10-27T19:51:28Z"},"1000":{"fee":48.35,"rate":26.9511,"markup":0.0,"at":"2026-10-27T19:51:28Z"},"1500":{"fee":66.04,"rate":26.9511,"markup":0.0,"at":"2026-10-27T19:51:29Z"},"2000":{"fee":83.74,"rate":26.9511,"markup":0.0,"at":"2026-10-27T19:51:30Z"}}},"stablecoin":null},{"code":"SV","name":"El Salvador","currency":"USD","currencyName":"dólares","mid":1.0,"providers":{"Wise":{"50":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-27T19:51:30Z"},"100":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-27T19:51:31Z"},"150":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-27T19:51:31Z"},"200":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-27T19:51:32Z"},"250":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-27T19:51:32Z"},"300":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-27T19:51:33Z"},"400":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-27T19:51:34Z"},"500":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-27T19:51:34Z"},"600":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-27T19:51:35Z"},"750":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-27T19:51:35Z"},"1000":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-27T19:51:36Z"},"1500":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-27T19:51:37Z"},"2000":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-27T19:51:37Z"}}},"stablecoin":null},{"code":"DO","name":"República Dominicana","currency":"DOP","currencyName":"pesos dominicanos","mid":60.29249999982132,"providers":{"Western Union":{"50":{"fee":0.99,"rate":58.7642,"markup":2.53480947,"at":"2026-10-27T19:15:26.331460Z"},"100":{"fee":0.99,"rate":58.7642,"markup":2.53480947,"at":"2026-10-27T19:15:26.331460Z"},"150":{"fee":0.99,"rate":58.7642,"markup":2.53480947,"at":"2026-10-27T19:15:26.331460Z"},"200":{"fee":0.99,"rate":58.7642,"markup":2.53480947,"at":"2026-10-27T19:15:26.331460Z"},"250":{"fee":0.99,"rate":58.7642,"markup":2.53480947,"at":"2026-10-27T19:15:26.331460Z"},"300":{"fee":0.99,"rate":58.7642,"markup":2.53480947,"at":"2026-10-27T19:15:26.331460Z"},"400":{"fee":0.99,"rate":58.7642,"markup":2.53480947,"at":"2026-10-27T19:15:26.331460Z"},"500":{"fee":0.99,"rate":58.7642,"markup":2.53480947,"at":"2026-10-27T19:15:26.331460Z"},"600":{"fee":0.99,"rate":58.7642,"markup":2.53480947,"at":"2026-10-27T19:15:26.331460Z"},"750":{"fee":0.99,"rate":58.7642,"markup":2.53480947,"at":"2026-10-27T19:15:26.331460Z"},"1000":{"fee":0.99,"rate":58.7642,"markup":2.53480947,"at":"2026-10-27T19:15:26.331460Z"},"1500":{"fee":0.99,"rate":58.7642,"markup":2.53480947,"at":"2026-10-27T19:15:26.331460Z"},"2000":{"fee":0.99,"rate":58.7642,"markup":2.53480947,"at":"2026-10-27T19:15:26.331460Z"}},"Wise":{"50":{"fee":15.1,"rate":60.3625,"markup":0.0,"at":"2026-10-27T19:51:38Z"},"100":{"fee":17.4,"rate":60.3625,"markup":0.0,"at":"2026-10-27T19:51:38Z"},"150":{"fee":19.71,"rate":60.3625,"markup":0.0,"at":"2026-10-27T19:51:39Z"},"200":{"fee":22.0,"rate":60.3625,"markup":0.0,"at":"2026-10-27T19:51:39Z"},"250":{"fee":24.3,"rate":60.3625,"markup":0.0,"at":"2026-10-27T19:51:40Z"},"300":{"fee":26.59,"rate":60.3625,"markup":0.0,"at":"2026-10-27T19:51:41Z"},"400":{"fee":31.2,"rate":60.3625,"markup":0.0,"at":"2026-10-27T19:51:41Z"},"500":{"fee":35.79,"rate":60.3625,"markup":0.0,"at":"2026-10-27T19:51:42Z"},"600":{"fee":40.39,"rate":60.3625,"markup":0.0,"at":"2026-10-27T19:51:42Z"},"750":{"fee":47.29,"rate":60.3625,"markup":0.0,"at":"2026-10-27T19:51:43Z"},"1000":{"fee":58.78,"rate":60.3625,"markup":0.0,"at":"2026-10-27T19:51:44Z"},"1500":{"fee":81.78,"rate":60.3625,"markup":0.0,"at":"2026-10-27T19:51:44Z"},"2000":{"fee":104.77,"rate":60.3625,"markup":0.0,"at":"2026-10-27T19:51:45Z"}},"Xoom":{"50":{"fee":0.0,"rate":55.253433625,"markup":8.35770017,"at":"2026-10-27T04:53:50.907520Z"},"100":{"fee":0.0,"rate":55.253433625,"markup":8.35770017,"at":"2026-10-27T04:53:50.907520Z"},"150":{"fee":0.0,"rate":56.4555820996,"markup":6.36383945,"at":"2026-10-27T04:53:50.907520Z"},"200":{"fee":0.0,"rate":56.4555820996,"markup":6.36383945,"at":"2026-10-27T04:53:50.907520Z"},"250":{"fee":0.0,"rate":57.2976547264,"markup":4.96719372,"at":"2026-10-27T04:53:50.907520Z"},"300":{"fee":0.0,"rate":57.2976547264,"markup":4.96719372,"at":"2026-10-27T04:53:50.907520Z"},"400":{"fee":0.0,"rate":57.2976547264,"markup":4.96719372,"at":"2026-10-27T04:53:50.907520Z"},"500":{"fee":0.0,"rate":57.8843119597,"markup":3.99417513,"at":"2026-10-27T04:53:50.907520Z"},"600":{"fee":0.0,"rate":57.8843119597,"markup":3.99417513,"at":"2026-10-27T04:53:50.907520Z"},"750":{"fee":0.0,"rate":57.8843119597,"markup":3.99417513,"at":"2026-10-27T04:53:50.907520Z"},"1000":{"fee":0.0,"rate":58.128153846,"markup":3.58974359,"at":"2026-10-27T04:53:50.907520Z"},"1500":{"fee":0.0,"rate":58.128153846,"markup":3.58974359,"at":"2026-10-27T04:53:50.907520Z"},"2000":{"fee":0.0,"rate":58.3778822578,"markup":3.17554877,"at":"2026-10-27T04:53:50.907520Z"}},"Instarem":{"50":{"fee":0.0,"rate":60.1768,"markup":0.19189783,"at":"2026-10-27T18:20:59.496750Z"},"100":{"fee":0.0,"rate":60.1768,"markup":0.19189783,"at":"2026-10-27T18:20:59.496750Z"},"150":{"fee":0.0,"rate":60.1768,"markup":0.19189783,"at":"2026-10-27T18:20:59.496750Z"},"200":{"fee":0.0,"rate":60.1768,"markup":0.19189783,"at":"2026-10-27T18:20:59.496750Z"},"250":{"fee":0.0,"rate":60.1768,"markup":0.19189783,"at":"2026-10-27T18:20:59.496750Z"},"300":{"fee":0.0,"rate":60.1768,"markup":0.19189783,"at":"2026-10-27T18:20:59.496750Z"},"400":{"fee":0.0,"rate":60.1768,"markup":0.19189783,"at":"2026-10-27T18:20:59.496750Z"},"500":{"fee":0.0,"rate":60.1768,"markup":0.19189783,"at":"2026-10-27T18:20:59.496750Z"},"600":{"fee":0.0,"rate":60.1768,"markup":0.19189783,"at":"2026-10-27T18:20:59.496750Z"},"750":{"fee":0.0,"rate":60.1768,"markup":0.19189783,"at":"2026-10-27T18:20:59.496750Z"},"1000":{"fee":0.0,"rate":60.1768,"markup":0.19189783,"at":"2026-10-27T18:20:59.496750Z"},"1500":{"fee":0.0,"rate":60.1768,"markup":0.19189783,"at":"2026-10-27T18:20:59.496750Z"},"2000":{"fee":0.0,"rate":60.1768,"markup":0.19189783,"at":"2026-10-27T18:20:59.496750Z"}}},"stablecoin":null},{"code":"CO","name":"Colombia","currency":"COP","currencyName":"pesos colombianos","mid":3145.7700000000414,"providers":{"Western Union":{"50":{"fee":1.99,"rate":3041.691,"markup":3.30853813,"at":"2026-10-27T19:15:23.392309Z"},"100":{"fee":1.99,"rate":3041.691,"markup":3.30853813,"at":"2026-10-27T19:15:23.392309Z"},"150":{"fee":1.99,"rate":3041.691,"markup":3.30853813,"at":"2026-10-27T19:15:23.392309Z"},"200":{"fee":1.99,"rate":3041.691,"markup":3.30853813,"at":"2026-10-27T19:15:23.392309Z"},"250":{"fee":1.99,"rate":3041.691,"markup":3.30853813,"at":"2026-10-27T19:15:23.392309Z"},"300":{"fee":1.99,"rate":3041.691,"markup":3.30853813,"at":"2026-10-27T19:15:23.392309Z"},"400":{"fee":1.99,"rate":3041.691,"markup":3.30853813,"at":"2026-10-27T19:15:23.392309Z"},"500":{"fee":1.99,"rate":3041.691,"markup":3.30853813,"at":"2026-10-27T19:15:23.392309Z"},"600":{"fee":1.99,"rate":3091.915,"markup":1.71198149,"at":"2026-10-27T19:15:23.392309Z"},"750":{"fee":1.99,"rate":3091.915,"markup":1.71198149,"at":"2026-10-27T19:15:23.392309Z"},"1000":{"fee":1.99,"rate":3091.915,"markup":1.71198149,"at":"2026-10-27T19:15:23.392309Z"},"1500":{"fee":1.99,"rate":3091.915,"markup":1.71198149,"at":"2026-10-27T19:15:23.392309Z"},"2000":{"fee":1.99,"rate":3091.915,"markup":1.71198149,"at":"2026-10-27T19:15:23.392309Z"}},"Wise":{"50":{"fee":8.47,"rate":3146.0,"markup":0.0,"at":"2026-10-27T19:51:45Z"},"100":{"fee":9.16,"rate":3146.0,"markup":0.0,"at":"2026-10-27T19:51:46Z"},"150":{"fee":9.83,"rate":3146.0,"markup":0.0,"at":"2026-10-27T19:51:46Z"},"200":{"fee":10.52,"rate":3146.0,"markup":0.0,"at":"2026-10-27T19:51:47Z"},"250":{"fee":11.19,"rate":3146.0,"markup":0.0,"at":"2026-10-27T19:51:48Z"},"300":{"fee":11.88,"rate":3146.0,"markup":0.0,"at":"2026-10-27T19:51:48Z"},"400":{"fee":13.24,"rate":3146.0,"markup":0.0,"at":"2026-10-27T19:51:49Z"},"500":{"fee":14.6,"rate":3146.0,"markup":0.0,"at":"2026-10-27T19:51:49Z"},"600":{"fee":15.96,"rate":3146.0,"markup":0.0,"at":"2026-10-27T19:51:50Z"},"750":{"fee":18.0,"rate":3146.0,"markup":0.0,"at":"2026-10-27T19:51:51Z"},"1000":{"fee":21.4,"rate":3146.0,"markup":0.0,"at":"2026-10-27T19:51:51Z"},"1500":{"fee":28.22,"rate":3146.0,"markup":0.0,"at":"2026-10-27T19:51:52Z"},"2000":{"fee":35.03,"rate":3146.0,"markup":0.0,"at":"2026-10-27T19:51:52Z"}},"Xoom":{"50":{"fee":0.0,"rate":2899.9462356594,"markup":7.81442268,"at":"2026-10-27T04:50:26.076537Z"},"100":{"fee":0.0,"rate":2899.9462356594,"markup":7.81442268,"at":"2026-10-27T04:50:26.076537Z"},"150":{"fee":0.0,"rate":2997.7991401905,"markup":4.70380415,"at":"2026-10-27T04:50:26.076537Z"},"200":{"fee":0.0,"rate":2997.7991401905,"markup":4.70380415,"at":"2026-10-27T04:50:26.076537Z"},"250":{"fee":0.0,"rate":3044.0682619172,"markup":3.23296802,"at":"2026-10-27T04:50:26.076537Z"},"300":{"fee":0.0,"rate":3044.0682619172,"markup":3.23296802,"at":"2026-10-27T04:50:26.076537Z"},"400":{"fee":0.0,"rate":3044.0682619172,"markup":3.23296802,"at":"2026-10-27T04:50:26.076537Z"},"500":{"fee":0.0,"rate":3061.5754754679,"markup":2.67643612,"at":"2026-10-27T04:50:26.076537Z"},"600":{"fee":0.0,"rate":3061.5754754679,"markup":2.67643612,"at":"2026-10-27T04:50:26.076537Z"},"750":{"fee":0.0,"rate":3061.5754754679,"markup":2.67643612,"at":"2026-10-27T04:50:26.076537Z"},"1000":{"fee":0.0,"rate":3064.0764629679,"markup":2.59693293,"at":"2026-10-27T04:50:26.076537Z"},"1500":{"fee":0.0,"rate":3064.0764629679,"markup":2.59693293,"at":"2026-10-27T04:50:26.076537Z"},"2000":{"fee":0.0,"rate":3075.0184715157,"markup":2.24910049,"at":"2026-10-27T04:50:26.076537Z"}},"Instarem":{"50":{"fee":0.0,"rate":3126.0542536364,"markup":0.62673833,"at":"2026-10-27T18:20:45.908913Z"},"100":{"fee":0.0,"rate":3126.0542536364,"markup":0.62673833,"at":"2026-10-27T18:20:45.908913Z"},"150":{"fee":0.0,"rate":3126.0542536364,"markup":0.62673833,"at":"2026-10-27T18:20:45.908913Z"},"200":{"fee":0.0,"rate":3126.0542536364,"markup":0.62673833,"at":"2026-10-27T18:20:45.908913Z"},"250":{"fee":0.0,"rate":3126.0542536364,"markup":0.62673833,"at":"2026-10-27T18:20:45.908913Z"},"300":{"fee":0.0,"rate":3126.0542536364,"markup":0.62673833,"at":"2026-10-27T18:20:45.908913Z"},"400":{"fee":0.0,"rate":3126.0542536364,"markup":0.62673833,"at":"2026-10-27T18:20:45.908913Z"},"500":{"fee":0.0,"rate":3126.0542536364,"markup":0.62673833,"at":"2026-10-27T18:20:45.908913Z"},"600":{"fee":0.0,"rate":3126.0542536364,"markup":0.62673833,"at":"2026-10-27T18:20:45.908913Z"},"750":{"fee":0.0,"rate":3126.0542536364,"markup":0.62673833,"at":"2026-10-27T18:20:45.908913Z"},"1000":{"fee":0.0,"rate":3126.0542536364,"markup":0.62673833,"at":"2026-10-27T18:20:45.908913Z"},"1500":{"fee":0.0,"rate":3126.0542536364,"markup":0.62673833,"at":"2026-10-27T18:20:45.908913Z"},"2000":{"fee":0.0,"rate":3126.0542536364,"markup":0.62673833,"at":"2026-10-27T18:20:45.908913Z"}},"Remitly":{"50":{"fee":3.99,"rate":3112.94,"markup":1.04362366,"at":"2026-10-27T19:44:36.563233Z"},"100":{"fee":3.99,"rate":3112.94,"markup":1.04362366,"at":"2026-10-27T19:44:36.563233Z"},"150":{"fee":3.99,"rate":3112.94,"markup":1.04362366,"at":"2026-10-27T19:44:36.563233Z"},"200":{"fee":3.99,"rate":3112.94,"markup":1.04362366,"at":"2026-10-27T19:44:36.563233Z"},"250":{"fee":3.99,"rate":3112.94,"markup":1.04362366,"at":"2026-10-27T19:44:36.563233Z"},"300":{"fee":3.99,"rate":3112.94,"markup":1.04362366,"at":"2026-10-27T19:44:36.563233Z"},"400":{"fee":3.99,"rate":3112.94,"markup":1.04362366,"at":"2026-10-27T19:44:36.563233Z"},"500":{"fee":0.0,"rate":3118.31,"markup":0.87291824,"at":"2026-10-27T19:44:36.563233Z"},"600":{"fee":0.0,"rate":3118.31,"markup":0.87291824,"at":"2026-10-27T19:44:36.563233Z"},"750":{"fee":0.0,"rate":3118.31,"markup":0.87291824,"at":"2026-10-27T19:44:36.563233Z"},"1000":{"fee":0.0,"rate":3118.31,"markup":0.87291824,"at":"2026-10-27T19:44:36.563233Z"},"1500":{"fee":0.0,"rate":3118.31,"markup":0.87291824,"at":"2026-10-27T19:44:36.563233Z"},"2000":{"fee":0.0,"rate":3118.31,"markup":0.87291824,"at":"2026-10-27T19:44:36.563233Z"}}},"stablecoin":{"source":"Bitso USDT/COP","bid":3166.2}},{"code":"CR","name":"Costa Rica","currency":"CRC","currencyName":"colones","mid":451.5200000000286,"providers":{"Wise":{"50":{"fee":12.57,"rate":451.52,"markup":0.0,"at":"2026-10-27T19:51:53Z"},"100":{"fee":13.23,"rate":451.52,"markup":0.0,"at":"2026-10-27T19:51:54Z"},"150":{"fee":13.88,"rate":451.52,"markup":0.0,"at":"2026-10-27T19:51:54Z"},"200":{"fee":14.53,"rate":451.52,"markup":0.0,"at":"2026-10-27T19:51:55Z"},"250":{"fee":15.18,"rate":451.52,"markup":0.0,"at":"2026-10-27T19:51:55Z"},"300":{"fee":15.83,"rate":451.52,"markup":0.0,"at":"2026-10-27T19:51:56Z"},"400":{"fee":17.14,"rate":451.52,"markup":0.0,"at":"2026-10-27T19:51:56Z"},"500":{"fee":18.43,"rate":451.52,"markup":0.0,"at":"2026-10-27T19:51:57Z"},"600":{"fee":19.74,"rate":451.52,"markup":0.0,"at":"2026-10-27T19:51:58Z"},"750":{"fee":21.69,"rate":451.52,"markup":0.0,"at":"2026-10-27T19:51:58Z"},"1000":{"fee":24.96,"rate":451.52,"markup":0.0,"at":"2026-10-27T19:51:59Z"},"1500":{"fee":31.47,"rate":451.52,"markup":0.0,"at":"2026-10-27T19:51:59Z"},"2000":{"fee":37.97,"rate":451.52,"markup":0.0,"at":"2026-10-27T19:52:00Z"}},"Western Union":{"50":{"fee":3.99,"rate":443.4596074146,"markup":1.78516845,"at":"2026-10-27T19:15:23.985777Z"},"100":{"fee":3.99,"rate":443.4596074146,"markup":1.78516845,"at":"2026-10-27T19:15:23.985777Z"},"150":{"fee":3.99,"rate":443.4596074146,"markup":1.78516845,"at":"2026-10-27T19:15:23.985777Z"},"200":{"fee":3.99,"rate":443.4596074146,"markup":1.78516845,"at":"2026-10-27T19:15:23.985777Z"},"250":{"fee":3.99,"rate":443.4596074146,"markup":1.78516845,"at":"2026-10-27T19:15:23.985777Z"},"300":{"fee":3.99,"rate":443.4596074146,"markup":1.78516845,"at":"2026-10-27T19:15:23.985777Z"},"400":{"fee":3.99,"rate":443.4596074146,"markup":1.78516845,"at":"2026-10-27T19:15:23.985777Z"},"500":{"fee":3.99,"rate":443.4596074146,"markup":1.78516845,"at":"2026-10-27T19:15:23.985777Z"},"600":{"fee":3.99,"rate":443.4596074146,"markup":1.78516845,"at":"2026-10-27T19:15:23.985777Z"},"750":{"fee":3.99,"rate":443.4596074146,"markup":1.78516845,"at":"2026-10-27T19:15:23.985777Z"},"1000":{"fee":3.99,"rate":443.4596074146,"markup":1.78516845,"at":"2026-10-27T19:15:23.985777Z"},"1500":{"fee":3.99,"rate":443.4596074146,"markup":1.78516845,"at":"2026-10-27T19:15:23.985777Z"},"2000":{"fee":3.99,"rate":443.4596074146,"markup":1.78516845,"at":"2026-10-27T19:15:23.985777Z"}},"Remitly":{"50":{"fee":3.99,"rate":442.6690198703,"markup":1.96026314,"at":"2026-10-27T19:44:37.128142Z"},"100":{"fee":3.99,"rate":442.6690198703,"markup":1.96026314,"at":"2026-10-27T19:44:37.128142Z"},"150":{"fee":3.99,"rate":442.6690198703,"markup":1.96026314,"at":"2026-10-27T19:44:37.128142Z"},"200":{"fee":3.99,"rate":442.6690198703,"markup":1.96026314,"at":"2026-10-27T19:44:37.128142Z"},"250":{"fee":3.99,"rate":442.6690198703,"markup":1.96026314,"at":"2026-10-27T19:44:37.128142Z"},"300":{"fee":3.99,"rate":442.6690198703,"markup":1.96026314,"at":"2026-10-27T19:44:37.128142Z"},"400":{"fee":3.99,"rate":442.6690198703,"markup":1.96026314,"at":"2026-10-27T19:44:37.128142Z"},"500":{"fee":3.99,"rate":442.6690198703,"markup":1.96026314,"at":"2026-10-27T19:44:37.128142Z"},"600":{"fee":3.99,"rate":442.6690198703,"markup":1.96026314,"at":"2026-10-27T19:44:37.128142Z"},"750":{"fee":3.99,"rate":442.6690198703,"markup":1.96026314,"at":"2026-10-27T19:44:37.128142Z"},"1000":{"fee":3.99,"rate":442.6690198703,"markup":1.96026314,"at":"2026-10-27T19:44:37.128142Z"},"1500":{"fee":3.99,"rate":442.6690198703,"markup":1.96026314,"at":"2026-10-27T19:44:37.128142Z"},"2000":{"fee":3.99,"rate":442.6690198703,"markup":1.96026314,"at":"2026-10-27T19:44:37.128142Z"}}},"stablecoin":null}]}</script>
 <script>
 (function () {
   const DATA = JSON.parse(document.getElementById("rates").textContent || "{}");
@@ -378,8 +500,8 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; borde
   function freshness(liveAt) {
     const p = el("p", "fresh" + (liveAt ? " live" : ""));
     p.appendChild(el("span", "dot"));
-    if (liveAt) p.append("En vivo · precios consultados " + ago(Date.now() - liveAt));
-    else if (DATA.collected) p.append((liveFailed ? "Sin conexión en vivo · " : "") + "Precios revisados " + ago(Date.now() - Date.parse(DATA.collected)));
+    if (liveAt) p.append("En vivo · " + ago(Date.now() - liveAt));
+    else if (DATA.collected) p.append("Revisado " + ago(Date.now() - Date.parse(DATA.collected)));
     p.id = "fresh";
     return p;
   }
@@ -414,30 +536,56 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; borde
 
   function renderAnswer(c, list, amount, liveAt) {
     const box = $("answer"); box.textContent = "";
-    box.appendChild(freshness(liveAt));
+    const head = el("div", "app-head");
+    const logo = el("span"); logo.append("Manda "); logo.appendChild(el("span", "mas", "Más"));
+    head.appendChild(logo); head.appendChild(freshness(liveAt));
+    box.appendChild(head);
+    const fa = $("float-a"), fb = $("float-b");
+    fa.hidden = true; fb.hidden = true;
     if (!list.length) { box.appendChild(el("p", null, "Todavía no tenemos precios para este país.")); return; }
     const best = list[0], worst = list[list.length - 1];
-    box.appendChild(el("p", "eyebrow", "La mejor opción hoy"));
+    const card = el("div", "best-card");
+    card.appendChild(el("p", "eyebrow", "Mejor opción hoy · " + (FLAGS[c.code] || "") + " " + c.name));
     const h = el("h2");
-    h.append("Manda " + usd(amount, amount % 1 !== 0) + " a " + c.name + " con ");
+    h.append("Manda " + usd(amount, amount % 1 !== 0) + " con ");
     h.appendChild(el("strong", null, best.name));
-    box.appendChild(h);
+    card.appendChild(h);
+    card.appendChild(el("p", "usd", "Tu familia recibe"));
     const big = el("p", "big num");
     big.append(local(best.received, c) + " ");
     big.appendChild(el("small", null, c.currencyName));
-    box.appendChild(big);
-    box.appendChild(el("p", "usd num", c.currency === "USD"
-      ? "Es lo que recibe tu familia, en dólares."
-      : "Es lo que recibe tu familia. Vale " + usd(best.worthUsd) + " dólares al cambio real."));
+    card.appendChild(big);
+    card.appendChild(el("p", "usd num", c.currency === "USD" ? "en dólares" : "Vale " + usd(best.worthUsd) + " al cambio real"));
+    box.appendChild(card);
     if (list.length > 1 && worst.received < best.received) {
       const lostLocal = best.received - worst.received, lostUsd = lostLocal / c.mid;
-      const g = el("p", "gap num");
-      g.append("Con " + worst.name + " llegarían ");
-      g.appendChild(el("strong", null, local(lostLocal, c) + " " + c.currencyName + " menos"));
-      g.append(c.currency === "USD" ? "." : " (" + usd(lostUsd) + " dólares).");
-      box.appendChild(g);
+      const s = el("div", "save num");
+      s.appendChild(el("span", "coin", "$"));
+      const t = el("div");
+      t.appendChild(el("b", null, "Ahorras " + usd(lostUsd)));
+      t.append("frente a " + worst.name);
+      s.appendChild(t);
+      box.appendChild(s);
+      $("float-a-text").textContent = "+" + local(lostLocal, c) + " " + c.currencyName + " más para tu familia";
+      fa.hidden = false;
+      const badge = $("story-badge");
+      if (badge) {
+        badge.textContent = "";
+        badge.appendChild(el("b", null, Math.round(lostLocal / worst.received * 100) + "% más"));
+        badge.append("dinero eligiendo bien hoy");
+      }
     }
-    if (list.length < 3) box.appendChild(el("p", "usd", "Por ahora tenemos pocos servicios para " + c.name + ". Agregaremos más."));
+    const ul = el("ul", "mini");
+    list.slice(0, 3).forEach((r, i) => {
+      const li = el("li", i === 0 ? "top" : null);
+      li.appendChild(el("span", null, (i + 1) + ". " + r.name));
+      li.appendChild(el("span", "num", local(r.received, c)));
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+    $("float-b-text").textContent = "Comparamos " + list.length + (list.length === 1 ? " servicio" : " servicios") + " por ti";
+    fb.hidden = false;
+    box.appendChild(el("p", "phone-note", list.length < 3 ? "Por ahora tenemos pocos servicios para " + c.name + "." : "Mira todas las opciones abajo"));
   }
 
   function renderList(c, list) {

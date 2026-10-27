@@ -9,6 +9,7 @@ import html as html_mod
 import json
 import os
 import re
+import shutil
 import statistics
 import sys
 import time
@@ -116,7 +117,8 @@ def page_meta(data, country, base):
             "lede": "Mira cuánto recibe tu familia con cada servicio antes de mandar dinero. Comparamos Remitly, Western Union, "
                     "Xoom, Wise y más para envíos a " + ", ".join(names[:-1]) + " y " + names[-1] + ".",
         }
-    provs = sorted(country["providers"])
+    known = ["Remitly", "Western Union", "Xoom", "Wise", "Instarem", "WorldRemit", "PayPal", "OFX"]
+    provs = sorted(country["providers"], key=lambda n: (known.index(n) if n in known else len(known), n))
     if len(provs) > 4:
         shown = ", ".join(provs[:4]) + " y más"
     elif len(provs) > 1:
@@ -161,11 +163,14 @@ def build_page(page, data, country, base, nav):
         f'<meta property="og:description" content="{esc(m["desc"])}">',
         '<meta property="og:type" content="website">',
         '<meta property="og:locale" content="es_US">',
-        '<meta name="twitter:card" content="summary">',
+        '<meta name="twitter:card" content="summary_large_image">',
+        '<meta name="theme-color" content="#3b1a6b">',
         f'<link rel="icon" href="{FAVICON}">',
     ]
     if url:
-        meta += [f'<link rel="canonical" href="{esc(url)}">', f'<meta property="og:url" content="{esc(url)}">']
+        meta += [f'<link rel="canonical" href="{esc(url)}">', f'<meta property="og:url" content="{esc(url)}">',
+                 f'<meta property="og:image" content="{esc(base)}img/og.jpg">',
+                 '<meta property="og:image:width" content="1200">', '<meta property="og:image:height" content="630">']
     meta.append('<script type="application/ld+json">' + json.dumps(ld, ensure_ascii=False).replace("</", "<\\/") + "</script>")
     attr = f' data-country="{country["code"].lower()}"' if country else ""
     return f'<!doctype html><html lang="es"{attr}><head>' + "".join(meta) + RESET + head + "</head><body>" + body + "</body></html>"
@@ -179,6 +184,9 @@ def write_site(page, data, site_dir, base):
     links = "".join(f'<li><a href="{esc((base or "/") + SLUGS[c["code"]] + "/")}">Enviar dinero a {esc(c["name"])}</a></li>' for c in live)
     nav = f'<nav class="countries-nav" aria-labelledby="nav-title"><h2 id="nav-title">Compara por país</h2><ul>{links}</ul></nav>'
     pages = [None] + live
+    img_src = os.path.join(HERE, "img")
+    if os.path.isdir(img_src):
+        shutil.copytree(img_src, os.path.join(site_dir, "img"), dirs_exist_ok=True)
     for country in pages:
         out_dir = site_dir if not country else os.path.join(site_dir, SLUGS[country["code"]])
         os.makedirs(out_dir, exist_ok=True)
