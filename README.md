@@ -23,3 +23,8 @@ python3 update_rates.py --site _site    # also build the website into _site/
 
 - Check that Wise's terms allow using its comparison data this way.
 - Replace the "Ir a…" links in `index.html` (`LINKS`) with your referral links.
+
+## Analytics
+
+Umami, with no cookies: `quote_view` and `outbound_service_click`. Set `UMAMI_WEBSITE_ID` in `update_rates.py`.
+Events, properties and how to test them are in [ANALYTICS.md](ANALYTICS.md).

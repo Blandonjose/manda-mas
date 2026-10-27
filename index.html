@@ -403,6 +403,9 @@ a { color: var(--navy-2); }
     "Chase (US)":    "https://www.chase.com",
     "Wells Fargo":   "https://www.wellsfargo.com"
   };
+  // Analytics only: add a service name here once its LINKS url above is a referral link, so
+  // outbound_service_click reports affiliate: true for it.
+  const AFFILIATE = new Set([]);
   const BANKS = new Set(["Chase (US)", "Wells Fargo"]);
   const WHOLE = new Set(["MXN", "DOP", "COP", "CRC", "CLP", "UYU"]);   // currencies shown without cents
   const QUICK = [100, 200, 300, 500, 1000];
@@ -474,6 +477,79 @@ a { color: var(--navy-2); }
     return n.toLocaleString("es-MX", { minimumFractionDigits: d, maximumFractionDigits: d });
   }
   function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  // Analytics (Umami, no cookies). Events and properties are documented in ANALYTICS.md.
+  // Events go to window.umami, which exists only when the builder added the Umami script
+  // (UMAMI_WEBSITE_ID in update_rates.py). Add ?analytics_debug=1 to the URL to log events
+  // to the console and window.__mmEvents. Never send exact amounts or anything personal.
+  const ANALYTICS_DEBUG = /[?&]analytics_debug=1(&|$)/.test(location.search);
+  const pending = [];
+  let flushTries = 0, flushTimer = null;
+  function track(name, props) {
+    if (ANALYTICS_DEBUG) {
+      console.info("[analytics]", name, props);
+      (window.__mmEvents = window.__mmEvents || []).push({ name, props });
+    }
+    if (!document.getElementById("mm-umami")) return;   // analytics not configured on this build
+    pending.push([name, props]);
+    flushEvents();
+  }
+  function flushEvents() {
+    clearTimeout(flushTimer);
+    if (window.umami && typeof window.umami.track === "function") {
+      while (pending.length) {
+        const [n, p] = pending.shift();
+        try { window.umami.track(n, p); } catch (e) {}
+      }
+      flushTries = 0;
+      return;
+    }
+    // The script loads with defer. Hold events up to ~10 s, then drop them (for example, blocked by an ad blocker).
+    if (++flushTries > 20) { pending.length = 0; flushTries = 0; return; }
+    flushTimer = setTimeout(flushEvents, 500);
+  }
+  function amountBucket(a) {
+    return a < 200 ? "0-199" : a < 500 ? "200-499" : a < 1000 ? "500-999" : "1000+";
+  }
+  // quote_view: once results settle for 1.5 s, and only when what they show changed
+  // (country, amount bucket, number of services or the top service). Live refreshes and
+  // typing inside the same bucket don't count as a new view.
+  let quoteTimer = null, lastQuote = "";
+  function scheduleQuoteView(c, list, amount) {
+    clearTimeout(quoteTimer);
+    if (!list.length) return;
+    const props = {
+      destination_country: c.code,
+      amount_bucket: amountBucket(amount),
+      services_compared: list.length,
+      top_service: list[0].name,
+      page_path: location.pathname
+    };
+    const sig = [props.destination_country, props.amount_bucket, props.services_compared, props.top_service, props.page_path].join("|");
+    quoteTimer = setTimeout(() => {
+      if (sig === lastQuote) return;
+      lastQuote = sig;
+      track("quote_view", props);
+    }, 1500);
+  }
+  // outbound_service_click: one listener for every link marked with data-service, so cards that
+  // are redrawn or added later are covered. It never cancels or waits on the click.
+  // Mark a new outbound link with data-service, data-rank (if ranked) and data-location.
+  function onOutboundClick(e) {
+    if (e.type === "auxclick" && e.button !== 1) return;   // middle click opens a tab too
+    const a = e.target instanceof Element ? e.target.closest("a[data-service]") : null;
+    if (!a) return;
+    const { c } = current();
+    const props = {
+      service: a.dataset.service,
+      destination_country: c ? c.code : "",
+      amount_bucket: amountBucket(state.amount),
+      page_path: location.pathname,
+      affiliate: AFFILIATE.has(a.dataset.service),
+      location: a.dataset.location || "results"
+    };
+    if (a.dataset.rank) props.rank = Number(a.dataset.rank);
+    track("outbound_service_click", props);
+  }
 
   // Fee for any amount: straight line between the two sampled amounts around it.
   // Rate: some services improve the rate above a threshold we can't see, so between samples use the lower one.
@@ -637,6 +713,7 @@ a { color: var(--navy-2); }
       if (LINKS[r.name]) {
         const a = el("a", "go", "Ir a " + r.name.replace(" (US)", "") + " ↗");
         a.href = LINKS[r.name]; a.target = "_blank"; a.rel = "noopener sponsored";
+        a.dataset.service = r.name; a.dataset.rank = String(i + 1); a.dataset.location = "results";   // for analytics
         bottom.appendChild(a);
       }
       li.appendChild(bottom);
@@ -698,6 +775,7 @@ a { color: var(--navy-2); }
     } else {
       renderAnswer(c, list, amount, liveAt); renderList(c, list); renderCrypto(c, amount, list[0]);
     }
+    if (amount >= 20) scheduleQuoteView(c, list, amount); else clearTimeout(quoteTimer);
     renderTerms(c, amount, list[0]);
   }
 
@@ -732,6 +810,8 @@ a { color: var(--navy-2); }
       " a las " + d.toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit" }) + ".";
   }
   $("amount").addEventListener("input", update);
+  document.addEventListener("click", onOutboundClick, true);
+  document.addEventListener("auxclick", onOutboundClick, true);
   window.addEventListener("hashchange", () => {
     const h = location.hash.slice(1).toUpperCase();
     if (countries.some(c => c.code === h)) { state.code = h; update(); }

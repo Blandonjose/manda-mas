@@ -23,6 +23,11 @@ PAGE = os.path.join(HERE, "index.html")
 # Fees change with the amount sent, so we sample several amounts and interpolate in the page.
 BRACKETS = [50, 100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1500, 2000]
 
+# Analytics (Umami Cloud, no cookies). Paste the Website ID from Umami (Settings -> Websites -> Edit)
+# here. Left empty, no analytics script is added and no events are sent. See ANALYTICS.md.
+UMAMI_WEBSITE_ID = "24dc3526-7c1d-4cf6-81f9-ee6ef3fd8045"
+UMAMI_DOMAIN = "mandamasdinero.com"   # Umami ignores visits on any other host, such as localhost
+
 COUNTRIES = [
     # code, name, currency, currency name (plural), Bitso book for the stablecoin route
     ("MX", "México", "MXN", "pesos", "usdt_mxn"),
@@ -183,6 +188,9 @@ def head_meta(title, desc, url, base):
         meta += [f'<link rel="canonical" href="{esc(url)}">', f'<meta property="og:url" content="{esc(url)}">',
                  f'<meta property="og:image" content="{esc(base)}img/og.jpg">',
                  '<meta property="og:image:width" content="1200">', '<meta property="og:image:height" content="630">']
+    if UMAMI_WEBSITE_ID:
+        meta.append(f'<script defer id="mm-umami" src="https://cloud.umami.is/script.js" data-website-id="{esc(UMAMI_WEBSITE_ID)}" '
+                    f'data-domains="{esc(UMAMI_DOMAIN)}" data-do-not-track="true" data-exclude-search="true"></script>')
     return meta
 
 
