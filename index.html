@@ -1,0 +1,579 @@
+<title>Manda Más</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Compara cuánto recibe tu familia con cada servicio de envío de dinero a México y Centroamérica.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<style>
+/* Layout: one narrow phone-first column. Ask (amount + country) -> answer (best option) -> full ranking -> how to read it. */
+:root {
+  --paper: #f4f7f4;
+  --surface: #ffffff;
+  --ink: #13211c;
+  --muted: #56665f;
+  --line: #d9e2dc;
+  --money: #0d6a55;
+  --money-soft: #e3f1ec;
+  --marigold: #d99511;
+  --marigold-soft: #fff2d3;
+  --loss: #b0432b;
+  --focus: #1f7ae0;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Verdana", "Segoe UI", system-ui, sans-serif;
+  --r: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1412; --surface: #151f1b; --ink: #e7efeb; --muted: #9caba5; --line: #2a3832;
+    --money: #4cc29f; --money-soft: #15312a; --marigold: #f0b63c; --marigold-soft: #3a2d10; --loss: #ef8a6f; --focus: #6aa8ff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d1412; --surface: #151f1b; --ink: #e7efeb; --muted: #9caba5; --line: #2a3832;
+  --money: #4cc29f; --money-soft: #15312a; --marigold: #f0b63c; --marigold-soft: #3a2d10; --loss: #ef8a6f; --focus: #6aa8ff;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--body); font-size: 17px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 560px; margin: 0 auto; display: grid; gap: 22px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+a { color: var(--money); }
+
+/* Masthead */
+.brand { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand h1 { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; }
+.brand h1 span { color: var(--money); }
+.brand .tag { color: var(--muted); font-size: 0.95rem; }
+
+/* Ask */
+.ask { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; display: grid; gap: 16px; }
+.label { font-weight: 700; font-size: 1rem; display: block; margin-bottom: 8px; }
+.amount { display: flex; align-items: center; gap: 6px; border: 2px solid var(--line); border-radius: 12px; padding: 4px 14px; background: var(--paper); }
+.amount:focus-within { border-color: var(--money); }
+.amount b { font-family: var(--display); font-size: 2rem; color: var(--muted); }
+.amount input {
+  border: 0; background: transparent; color: var(--ink); width: 100%; min-width: 0;
+  font-family: var(--display); font-weight: 800; font-size: 2.4rem; padding: 4px 0; font-variant-numeric: tabular-nums;
+}
+.amount input:focus { outline: none; }
+.amount small { color: var(--muted); font-weight: 700; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.chip {
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px;
+  padding: 8px 14px; font: inherit; font-size: 0.95rem; cursor: pointer; min-height: 40px;
+}
+.chip[aria-pressed="true"] { background: var(--money); border-color: var(--money); color: var(--surface); font-weight: 700; }
+.countries { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 8px; }
+.country {
+  display: flex; align-items: center; gap: 10px; text-align: left;
+  border: 2px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 12px;
+  padding: 10px 12px; font: inherit; font-size: 0.98rem; cursor: pointer; min-height: 52px;
+}
+.country .flag { font-size: 1.5rem; line-height: 1; }
+.country[aria-pressed="true"] { border-color: var(--money); background: var(--money-soft); font-weight: 700; }
+.country:disabled { opacity: 0.55; cursor: default; }
+.country small { display: block; color: var(--muted); font-size: 0.78rem; font-weight: 400; }
+.warn { color: var(--loss); font-size: 0.92rem; }
+
+/* Answer */
+.answer { background: var(--marigold-soft); border: 2px solid var(--marigold); border-radius: var(--r); padding: 18px; display: grid; gap: 10px; }
+.answer .eyebrow { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--muted); }
+.answer h2 { font-size: 1.45rem; font-weight: 600; }
+.answer .big { font-family: var(--display); font-weight: 800; font-size: 2.6rem; line-height: 1.05; color: var(--money); letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.answer .big small { font-size: 1.1rem; font-weight: 600; color: var(--ink); letter-spacing: 0; }
+.answer .usd { color: var(--muted); }
+.answer .gap { border-top: 1px dashed var(--marigold); padding-top: 10px; }
+.answer .gap strong { color: var(--loss); }
+
+/* Ranking */
+.section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.section-head h2 { font-size: 1.3rem; }
+.section-head p { color: var(--muted); font-size: 0.9rem; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.row { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 10px; }
+.row.best { border: 2px solid var(--marigold); }
+.row-top { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+.rank { font-family: var(--display); font-weight: 800; color: var(--muted); width: 1.6em; text-align: center; font-size: 1.1rem; }
+.who { min-width: 0; }
+.who h3 { font-size: 1.12rem; font-weight: 600; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.pill { font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--paper); color: var(--muted); border: 1px solid var(--line); }
+.pill.best { background: var(--marigold); color: #241a03; border-color: var(--marigold); }
+.pill.promo { background: var(--money-soft); color: var(--money); border-color: transparent; }
+.pill.old { color: var(--loss); }
+.gets { text-align: right; }
+.gets strong { font-family: var(--display); font-weight: 800; font-size: 1.35rem; display: block; line-height: 1.1; }
+.gets span { color: var(--muted); font-size: 0.85rem; }
+.row-bottom { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 10px; }
+.cost { font-size: 0.92rem; color: var(--muted); }
+.cost b { color: var(--ink); }
+.cost b.bad { color: var(--loss); }
+.go {
+  display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: 700; font-size: 0.95rem;
+  background: var(--money); color: var(--surface); border-radius: 10px; padding: 9px 14px; min-height: 42px;
+}
+.go:hover { filter: brightness(1.08); }
+.empty { color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); padding: 18px; }
+
+/* Stablecoin */
+.crypto { border: 1px dashed var(--money); border-radius: var(--r); padding: 16px; display: grid; gap: 8px; background: var(--surface); }
+.crypto h2 { font-size: 1.15rem; }
+.crypto .gets-line { font-family: var(--display); font-weight: 800; font-size: 1.4rem; color: var(--money); }
+.crypto ul { margin: 0; padding-left: 1.2em; color: var(--muted); font-size: 0.92rem; display: grid; gap: 4px; }
+
+/* Explainer */
+.learn { display: grid; gap: 12px; }
+.learn h2 { font-size: 1.3rem; }
+.terms { display: grid; gap: 10px; margin: 0; }
+.term { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; }
+.term dt { font-weight: 700; }
+.term dd { margin: 4px 0 0; color: var(--muted); }
+.term dd b { color: var(--ink); }
+
+.lede { color: var(--muted); max-width: 60ch; margin-top: -8px; }
+
+/* Freshness */
+.fresh { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; color: var(--muted); }
+.fresh .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+.fresh.live { color: var(--money); }
+.fresh.live .dot { background: var(--money); box-shadow: 0 0 0 3px var(--money-soft); }
+
+/* FAQ */
+.faq { display: grid; gap: 8px; }
+.faq h2 { font-size: 1.3rem; margin-bottom: 4px; }
+.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; }
+.faq summary { font-weight: 700; cursor: pointer; min-height: 28px; }
+.faq details p { margin-top: 8px; color: var(--muted); }
+.countries-nav { display: grid; gap: 8px; }
+.countries-nav h2 { font-size: 1.05rem; }
+.countries-nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.countries-nav a { display: inline-block; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; background: var(--surface); }
+
+footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 16px; }
+
+@media (max-width: 420px) {
+  .answer .big { font-size: 2.15rem; }
+  .row-top { grid-template-columns: auto 1fr; }
+  .gets { grid-column: 2; text-align: left; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .row, .answer { transition: border-color .2s; }
+}
+</style>
+
+<div class="wrap">
+  <header class="brand">
+    <h1>Manda <span>Más</span></h1>
+    <p class="tag">Compara antes de enviar</p>
+  </header>
+  <p class="lede" id="lede">Mira cuánto recibe tu familia con cada servicio antes de mandar dinero. Comparamos Remitly, Western Union, Xoom, Wise y más para envíos a México, Guatemala, Honduras, El Salvador, República Dominicana, Colombia y Costa Rica.</p>
+
+  <section class="ask" aria-label="Tu envío">
+    <div>
+      <label class="label" for="amount">¿Cuántos dólares vas a mandar?</label>
+      <div class="amount">
+        <b aria-hidden="true">$</b>
+        <input id="amount" inputmode="decimal" autocomplete="off" value="300" aria-describedby="amount-note">
+        <small>USD</small>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Montos comunes"></div>
+      <p class="warn" id="amount-note" hidden></p>
+    </div>
+    <div>
+      <span class="label" id="country-label">¿A qué país?</span>
+      <div class="countries" id="countries" role="group" aria-labelledby="country-label"></div>
+    </div>
+  </section>
+
+  <section class="answer" id="answer" aria-live="polite"></section>
+
+  <section aria-labelledby="list-title">
+    <div class="section-head">
+      <h2 id="list-title">Todas las opciones</h2>
+      <p>De más a menos dinero recibido</p>
+    </div>
+    <ol class="list" id="list" style="margin-top:12px"></ol>
+  </section>
+
+  <section class="crypto" id="crypto" hidden></section>
+
+  <section class="learn" aria-labelledby="learn-title">
+    <h2 id="learn-title">¿Por qué llega diferente cantidad?</h2>
+    <dl class="terms" id="terms"></dl>
+  </section>
+
+  <section class="faq" aria-labelledby="faq-title">
+    <h2 id="faq-title">Preguntas frecuentes</h2>
+    <details>
+      <summary>¿Cuál es la forma más barata de mandar dinero?</summary>
+      <p>Depende del día, del país y de cuánto mandes. Un servicio puede ser el más barato para $200 y no para $1,000. Por eso conviene comparar cada vez: escribe tu cantidad y fíjate en cuánto recibe tu familia.</p>
+    </details>
+    <details>
+      <summary>¿Por qué un envío "sin comisión" puede salir más caro?</summary>
+      <p>Porque el servicio puede darte un tipo de cambio peor que el real y quedarse la diferencia. No lo ves como comisión, pero tu familia recibe menos. Lo que cuenta es la cantidad final que llega.</p>
+    </details>
+    <details>
+      <summary>¿Qué tan actualizados están los precios?</summary>
+      <p>Al abrir la página consultamos los precios en ese momento, y también los revisamos cada hora. Cada servicio actualiza su precio a su propio ritmo, así que confirma el monto final en su app antes de pagar.</p>
+    </details>
+    <details>
+      <summary>¿Manda Más cobra algo o maneja mi dinero?</summary>
+      <p>No. Manda Más solo compara precios públicos. El envío lo haces directamente con el servicio que elijas.</p>
+    </details>
+    <details>
+      <summary>¿Es seguro mandar dólares digitales?</summary>
+      <p>Puede costar menos, pero tiene riesgos: si te equivocas de dirección o de red, el dinero se pierde, y tu familia necesita una cuenta en una app como Bitso. Si nunca lo has hecho, empieza con una prueba pequeña.</p>
+    </details>
+  </section>
+
+  <!--COUNTRY_LINKS-->
+
+  <footer>
+    <p id="stamp"></p>
+    <p>Manda Más no mueve tu dinero. Comparamos precios públicos de cada servicio. Confirma el precio final en la app del servicio antes de enviar.</p>
+    <p>Fuentes: comparador público de Wise (precios de cada servicio) y Bitso (dólares digitales).</p>
+  </footer>
+</div>
+
+<script id="rates" type="application/json">{"collected":"2026-10-23T00:27:37+00:00","brackets":[50,100,150,200,250,300,400,500,600,750,1000,1500,2000],"countries":[{"code":"MX","name":"México","currency":"MXN","currencyName":"pesos","mid":18.734299999995212,"providers":{"Remitly":{"50":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"100":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"150":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"200":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"250":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"300":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"400":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"500":{"fee":1.99,"rate":18.1039154593,"markup":3.3648684,"at":"2026-10-22T23:44:36.176878Z"},"600":{"fee":1.99,"rate":18.5542616141,"markup":0.96100941,"at":"2026-10-22T23:44:36.176878Z"},"750":{"fee":1.99,"rate":18.5542616141,"markup":0.96100941,"at":"2026-10-22T23:44:36.176878Z"},"1000":{"fee":1.99,"rate":18.5542616141,"markup":0.96100941,"at":"2026-10-22T23:44:36.176878Z"},"1500":{"fee":1.99,"rate":18.5542616141,"markup":0.96100941,"at":"2026-10-22T23:44:36.176878Z"},"2000":{"fee":1.99,"rate":18.5542616141,"markup":0.96100941,"at":"2026-10-22T23:44:36.176878Z"}},"Instarem":{"50":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"100":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"150":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"200":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"250":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"300":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"400":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"500":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"600":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"750":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"1000":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"1500":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"},"2000":{"fee":0.0,"rate":18.6227344933,"markup":0.59551468,"at":"2026-10-23T00:22:25.978087Z"}},"Chase (US)":{"50":{"fee":5.0,"rate":18.1616975316,"markup":3.05643909,"at":"2026-10-20T15:01:20Z"},"100":{"fee":5.0,"rate":18.1616975316,"markup":3.05643909,"at":"2026-10-20T15:01:20Z"},"150":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"200":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"250":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"300":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"400":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"500":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"600":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"750":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"1000":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"1500":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"},"2000":{"fee":5.0,"rate":18.1668835942,"markup":3.02875691,"at":"2026-10-20T15:01:44Z"}},"Wells Fargo":{"50":{"fee":0.0,"rate":18.1454928904,"markup":3.14293627,"at":"2026-10-20T16:27:43Z"},"100":{"fee":0.0,"rate":18.1454928904,"markup":3.14293627,"at":"2026-10-20T16:27:43Z"},"150":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"200":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"250":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"300":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"400":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"500":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"600":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"750":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"1000":{"fee":0.0,"rate":18.1464084506,"markup":3.13804919,"at":"2026-10-20T16:27:43Z"},"1500":{"fee":0.0,"rate":18.1451877049,"markup":3.14456529,"at":"2026-10-20T16:27:43Z"},"2000":{"fee":0.0,"rate":18.1451877049,"markup":3.14456529,"at":"2026-10-20T16:27:43Z"}},"WorldRemit":{"50":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"100":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"150":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"200":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"250":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"300":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"400":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"500":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"600":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"750":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"1000":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"1500":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"},"2000":{"fee":1.99,"rate":18.3033505957,"markup":2.30032296,"at":"2026-10-20T21:21:00Z"}},"Western Union":{"50":{"fee":1.99,"rate":18.3332917671,"markup":2.14050289,"at":"2026-10-22T23:17:02.076238Z"},"100":{"fee":1.99,"rate":18.3332917671,"markup":2.14050289,"at":"2026-10-22T23:17:02.076238Z"},"150":{"fee":1.99,"rate":18.3332917671,"markup":2.14050289,"at":"2026-10-22T23:17:02.076238Z"},"200":{"fee":1.99,"rate":18.3332917671,"markup":2.14050289,"at":"2026-10-22T23:17:02.076238Z"},"250":{"fee":1.99,"rate":18.3332917671,"markup":2.14050289,"at":"2026-10-22T23:17:02.076238Z"},"300":{"fee":1.99,"rate":18.3332917671,"markup":2.14050289,"at":"2026-10-22T23:17:02.076238Z"},"400":{"fee":1.99,"rate":18.4643925382,"markup":1.44071282,"at":"2026-10-22T23:17:02.076238Z"},"500":{"fee":1.99,"rate":18.4643925382,"markup":1.44071282,"at":"2026-10-22T23:17:02.076238Z"},"600":{"fee":1.99,"rate":18.4643925382,"markup":1.44071282,"at":"2026-10-22T23:17:02.076238Z"},"750":{"fee":1.99,"rate":18.4643925382,"markup":1.44071282,"at":"2026-10-22T23:17:02.076238Z"},"1000":{"fee":1.99,"rate":18.4643925382,"markup":1.44071282,"at":"2026-10-22T23:17:02.076238Z"},"1500":{"fee":1.99,"rate":18.4643925382,"markup":1.44071282,"at":"2026-10-22T23:17:02.076238Z"},"2000":{"fee":1.99,"rate":18.4643925382,"markup":1.44071282,"at":"2026-10-22T23:17:02.076238Z"}},"PayPal":{"50":{"fee":2.5,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"100":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"150":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"200":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"250":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"300":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"400":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"500":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"600":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"750":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"1000":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"1500":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"},"2000":{"fee":4.99,"rate":17.8467838159,"markup":4.73738642,"at":"2026-10-22T23:34:24.513621Z"}},"Wise":{"50":{"fee":7.33,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:37Z"},"100":{"fee":7.59,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:38Z"},"150":{"fee":7.83,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:38Z"},"200":{"fee":8.09,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:39Z"},"250":{"fee":8.33,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:39Z"},"300":{"fee":8.59,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:40Z"},"400":{"fee":9.09,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:41Z"},"500":{"fee":9.59,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:41Z"},"600":{"fee":10.07,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:42Z"},"750":{"fee":10.82,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:42Z"},"1000":{"fee":12.07,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:43Z"},"1500":{"fee":14.56,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:43Z"},"2000":{"fee":17.05,"rate":18.7411,"markup":0.0,"at":"2026-10-23T00:27:44Z"}},"Xoom":{"50":{"fee":0.0,"rate":19.0021324339,"markup":-1.42963673,"at":"2026-10-22T06:58:08.562843Z"},"100":{"fee":0.0,"rate":19.0021324339,"markup":-1.42963673,"at":"2026-10-22T06:58:08.562843Z"},"150":{"fee":0.0,"rate":19.0021324339,"markup":-1.42963673,"at":"2026-10-22T06:58:08.562843Z"},"200":{"fee":0.0,"rate":19.0021324339,"markup":-1.42963673,"at":"2026-10-22T06:58:08.562843Z"},"250":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"300":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"400":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"500":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"600":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"750":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"1000":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"1500":{"fee":0.0,"rate":19.0037290515,"markup":-1.43815916,"at":"2026-10-22T06:58:08.562843Z"},"2000":{"fee":0.0,"rate":18.7326035941,"markup":0.00905508,"at":"2026-10-22T06:58:08.562843Z"}},"OFX":{"200":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"250":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"300":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"400":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"500":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"600":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"750":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"1000":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"1500":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"},"2000":{"fee":5.0,"rate":18.3159774952,"markup":2.23292306,"at":"2026-10-22T22:41:35.835326Z"}}},"stablecoin":{"source":"Bitso USDT/MXN","bid":18.712}},{"code":"GT","name":"Guatemala","currency":"GTQ","currencyName":"quetzales","mid":7.642749999994431,"providers":{"Remitly":{"50":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"100":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"150":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"200":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"250":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"300":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"400":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"500":{"fee":1.99,"rate":7.4239216753,"markup":2.86321448,"at":"2026-10-22T23:44:24.613757Z"},"600":{"fee":1.99,"rate":7.5469319766,"markup":1.25371134,"at":"2026-10-22T23:44:24.613757Z"},"750":{"fee":1.99,"rate":7.5469319766,"markup":1.25371134,"at":"2026-10-22T23:44:24.613757Z"},"1000":{"fee":1.99,"rate":7.5469319766,"markup":1.25371134,"at":"2026-10-22T23:44:24.613757Z"},"1500":{"fee":1.99,"rate":7.5469319766,"markup":1.25371134,"at":"2026-10-22T23:44:24.613757Z"},"2000":{"fee":1.99,"rate":7.5469319766,"markup":1.25371134,"at":"2026-10-22T23:44:24.613757Z"}},"Xoom":{"50":{"fee":0.99,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"100":{"fee":1.89,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"150":{"fee":2.79,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"200":{"fee":3.69,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"250":{"fee":4.69,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"300":{"fee":5.49,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"400":{"fee":7.29,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"500":{"fee":9.09,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"600":{"fee":9.29,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"750":{"fee":11.59,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"1000":{"fee":15.49,"rate":7.673950612,"markup":-0.40823803,"at":"2026-10-22T06:47:12.695053Z"},"1500":{"fee":21.79,"rate":7.6340498289,"markup":0.11383561,"at":"2026-10-22T06:47:12.695053Z"},"2000":{"fee":28.99,"rate":7.6340498289,"markup":0.11383561,"at":"2026-10-22T06:47:12.695053Z"}},"Instarem":{"50":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"100":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"150":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"200":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"250":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"300":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"400":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"500":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"600":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"750":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"1000":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"1500":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"},"2000":{"fee":0.0,"rate":7.5932,"markup":0.64832685,"at":"2026-10-23T00:21:33.729458Z"}},"Western Union":{"50":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"100":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"150":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"200":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"250":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"300":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"400":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"500":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"600":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"750":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"1000":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"1500":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"},"2000":{"fee":1.99,"rate":7.5483320932,"markup":1.2353918,"at":"2026-10-22T23:16:44.778192Z"}},"Wise":{"50":{"fee":14.47,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:45Z"},"100":{"fee":15.9,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:45Z"},"150":{"fee":17.33,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:46Z"},"200":{"fee":18.77,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:47Z"},"250":{"fee":20.2,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:47Z"},"300":{"fee":21.63,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:10Z"},"400":{"fee":24.5,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:48Z"},"500":{"fee":27.36,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:49Z"},"600":{"fee":30.23,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:49Z"},"750":{"fee":34.53,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:50Z"},"1000":{"fee":41.69,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:51Z"},"1500":{"fee":56.02,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:51Z"},"2000":{"fee":70.34,"rate":7.64275,"markup":0.0,"at":"2026-10-23T00:27:52Z"}}},"stablecoin":null},{"code":"HN","name":"Honduras","currency":"HNL","currencyName":"lempiras","mid":26.954499999981,"providers":{"Western Union":{"50":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"100":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"150":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"200":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"250":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"300":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"400":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"500":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"600":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"750":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"1000":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"1500":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"},"2000":{"fee":2.99,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T23:16:45.224367Z"}},"Wise":{"50":{"fee":14.73,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:52Z"},"100":{"fee":16.5,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:53Z"},"150":{"fee":18.28,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:53Z"},"200":{"fee":20.06,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:54Z"},"250":{"fee":21.84,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:55Z"},"300":{"fee":23.62,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:55Z"},"400":{"fee":27.18,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:56Z"},"500":{"fee":30.73,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:56Z"},"600":{"fee":34.29,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:57Z"},"750":{"fee":39.63,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:57Z"},"1000":{"fee":48.53,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:58Z"},"1500":{"fee":66.32,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:59Z"},"2000":{"fee":84.12,"rate":26.9545,"markup":0.0,"at":"2026-10-23T00:27:59Z"}},"Xoom":{"50":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"100":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"150":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"200":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"250":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"300":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"400":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"500":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"600":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"750":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"1000":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"1500":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"},"2000":{"fee":4.29,"rate":26.8872291988,"markup":0.24957169,"at":"2026-10-22T06:47:19.135048Z"}}},"stablecoin":null},{"code":"SV","name":"El Salvador","currency":"USD","currencyName":"dólares","mid":1.0,"providers":{"Wise":{"50":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:00Z"},"100":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:00Z"},"150":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:01Z"},"200":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:01Z"},"250":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:02Z"},"300":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:03Z"},"400":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:03Z"},"500":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:04Z"},"600":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:04Z"},"750":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:05Z"},"1000":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:05Z"},"1500":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:06Z"},"2000":{"fee":12.26,"rate":1.0,"markup":0.0,"at":"2026-10-23T00:28:07Z"}}},"stablecoin":null},{"code":"DO","name":"República Dominicana","currency":"DOP","currencyName":"pesos dominicanos","mid":61.03,"providers":{"Instarem":{"50":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"100":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"150":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"200":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"250":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"300":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"400":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"500":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"600":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"750":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"1000":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"1500":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"},"2000":{"fee":0.0,"rate":60.7235,"markup":0.50221203,"at":"2026-10-23T00:21:17.302747Z"}},"Wise":{"50":{"fee":15.13,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:07Z"},"100":{"fee":17.48,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:08Z"},"150":{"fee":19.82,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:08Z"},"200":{"fee":22.17,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:09Z"},"250":{"fee":24.52,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:09Z"},"300":{"fee":26.86,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:10Z"},"400":{"fee":31.54,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:11Z"},"500":{"fee":36.24,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:11Z"},"600":{"fee":40.93,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:12Z"},"750":{"fee":47.96,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:12Z"},"1000":{"fee":59.69,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:13Z"},"1500":{"fee":83.13,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:14Z"},"2000":{"fee":106.58,"rate":61.03,"markup":0.0,"at":"2026-10-23T00:28:14Z"}},"Western Union":{"50":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"100":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"150":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"200":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"250":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"300":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"400":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"500":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"600":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"750":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"1000":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"1500":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"},"2000":{"fee":0.99,"rate":59.4091368505,"markup":2.65584655,"at":"2026-10-22T23:16:37.105485Z"}},"Xoom":{"50":{"fee":0.0,"rate":56.3355156055,"markup":7.69209306,"at":"2026-10-22T06:35:02.702891Z"},"100":{"fee":0.0,"rate":56.3355156055,"markup":7.69209306,"at":"2026-10-22T06:35:02.702891Z"},"150":{"fee":0.0,"rate":57.5611741014,"markup":5.68380452,"at":"2026-10-22T06:35:02.702891Z"},"200":{"fee":0.0,"rate":57.5611741014,"markup":5.68380452,"at":"2026-10-22T06:35:02.702891Z"},"250":{"fee":0.0,"rate":58.4198161935,"markup":4.27688646,"at":"2026-10-22T06:35:02.702891Z"},"300":{"fee":0.0,"rate":58.4198161935,"markup":4.27688646,"at":"2026-10-22T06:35:02.702891Z"},"400":{"fee":0.0,"rate":58.4198161935,"markup":4.27688646,"at":"2026-10-22T06:35:02.702891Z"},"500":{"fee":0.0,"rate":59.0178205404,"markup":3.29703336,"at":"2026-10-22T06:35:02.702891Z"},"600":{"fee":0.0,"rate":59.0178205404,"markup":3.29703336,"at":"2026-10-22T06:35:02.702891Z"},"750":{"fee":0.0,"rate":59.0178205404,"markup":3.29703336,"at":"2026-10-22T06:35:02.702891Z"},"1000":{"fee":0.0,"rate":59.2665382599,"markup":2.88949982,"at":"2026-10-22T06:35:02.702891Z"},"1500":{"fee":0.0,"rate":59.2665382599,"markup":2.88949982,"at":"2026-10-22T06:35:02.702891Z"},"2000":{"fee":0.0,"rate":59.5211659109,"markup":2.47228263,"at":"2026-10-22T06:35:02.702891Z"}}},"stablecoin":null},{"code":"CO","name":"Colombia","currency":"COP","currencyName":"pesos colombianos","mid":3182.6300000000115,"providers":{"Instarem":{"50":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"100":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"150":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"200":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"250":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"300":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"400":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"500":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"600":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"750":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"1000":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"1500":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"},"2000":{"fee":0.0,"rate":3158.8819,"markup":0.74617848,"at":"2026-10-23T00:21:03.145691Z"}},"Remitly":{"50":{"fee":3.99,"rate":3139.6101350431,"markup":1.35170802,"at":"2026-10-22T23:44:18.675695Z"},"100":{"fee":3.99,"rate":3139.6101350431,"markup":1.35170802,"at":"2026-10-22T23:44:18.675695Z"},"150":{"fee":3.99,"rate":3139.6101350431,"markup":1.35170802,"at":"2026-10-22T23:44:18.675695Z"},"200":{"fee":3.99,"rate":3139.6101350431,"markup":1.35170802,"at":"2026-10-22T23:44:18.675695Z"},"250":{"fee":3.99,"rate":3139.6101350431,"markup":1.35170802,"at":"2026-10-22T23:44:18.675695Z"},"300":{"fee":3.99,"rate":3139.6101350431,"markup":1.35170802,"at":"2026-10-22T23:44:18.675695Z"},"400":{"fee":3.99,"rate":3139.6101350431,"markup":1.35170802,"at":"2026-10-22T23:44:18.675695Z"},"500":{"fee":0.0,"rate":3145.0301182876,"markup":1.18140914,"at":"2026-10-22T23:44:18.675695Z"},"600":{"fee":0.0,"rate":3145.0301182876,"markup":1.18140914,"at":"2026-10-22T23:44:18.675695Z"},"750":{"fee":0.0,"rate":3145.0301182876,"markup":1.18140914,"at":"2026-10-22T23:44:18.675695Z"},"1000":{"fee":0.0,"rate":3145.0301182876,"markup":1.18140914,"at":"2026-10-22T23:44:18.675695Z"},"1500":{"fee":0.0,"rate":3145.0301182876,"markup":1.18140914,"at":"2026-10-22T23:44:18.675695Z"},"2000":{"fee":0.0,"rate":3145.0301182876,"markup":1.18140914,"at":"2026-10-22T23:44:18.675695Z"}},"Xoom":{"50":{"fee":0.0,"rate":2921.9466015494,"markup":8.19081698,"at":"2026-10-22T06:31:38.087797Z"},"100":{"fee":0.0,"rate":2921.9466015494,"markup":8.19081698,"at":"2026-10-22T06:31:38.087797Z"},"150":{"fee":0.0,"rate":3020.5418943356,"markup":5.09289819,"at":"2026-10-22T06:31:38.087797Z"},"200":{"fee":0.0,"rate":3020.5418943356,"markup":5.09289819,"at":"2026-10-22T06:31:38.087797Z"},"250":{"fee":0.0,"rate":3067.1619885401,"markup":3.62806897,"at":"2026-10-22T06:31:38.087797Z"},"300":{"fee":0.0,"rate":3067.1619885401,"markup":3.62806897,"at":"2026-10-22T06:31:38.087797Z"},"400":{"fee":0.0,"rate":3067.1619885401,"markup":3.62806897,"at":"2026-10-22T06:31:38.087797Z"},"500":{"fee":0.0,"rate":3084.802043126,"markup":3.07380867,"at":"2026-10-22T06:31:38.087797Z"},"600":{"fee":0.0,"rate":3084.802043126,"markup":3.07380867,"at":"2026-10-22T06:31:38.087797Z"},"750":{"fee":0.0,"rate":3084.802043126,"markup":3.07380867,"at":"2026-10-22T06:31:38.087797Z"},"1000":{"fee":0.0,"rate":3087.3220511513,"markup":2.99462862,"at":"2026-10-22T06:31:38.087797Z"},"1500":{"fee":0.0,"rate":3087.3220511513,"markup":2.99462862,"at":"2026-10-22T06:31:38.087797Z"},"2000":{"fee":0.0,"rate":3098.347047792,"markup":2.64821711,"at":"2026-10-22T06:31:38.087797Z"}},"Wise":{"50":{"fee":8.47,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:15Z"},"100":{"fee":9.16,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:15Z"},"150":{"fee":9.83,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:16Z"},"200":{"fee":10.52,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:16Z"},"250":{"fee":11.19,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:17Z"},"300":{"fee":11.88,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:18Z"},"400":{"fee":13.24,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:18Z"},"500":{"fee":14.6,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:19Z"},"600":{"fee":15.96,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:19Z"},"750":{"fee":18.0,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:20Z"},"1000":{"fee":21.4,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:20Z"},"1500":{"fee":28.22,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:21Z"},"2000":{"fee":35.03,"rate":3182.63,"markup":0.0,"at":"2026-10-23T00:28:22Z"}},"Western Union":{"50":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"100":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"150":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"200":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"250":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"300":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"400":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"500":{"fee":1.99,"rate":3093.1738810049,"markup":2.81076088,"at":"2026-10-22T23:16:34.269679Z"},"600":{"fee":1.99,"rate":3144.248020701,"markup":1.20598308,"at":"2026-10-22T23:16:34.269679Z"},"750":{"fee":1.99,"rate":3144.248020701,"markup":1.20598308,"at":"2026-10-22T23:16:34.269679Z"},"1000":{"fee":1.99,"rate":3144.248020701,"markup":1.20598308,"at":"2026-10-22T23:16:34.269679Z"},"1500":{"fee":1.99,"rate":3144.248020701,"markup":1.20598308,"at":"2026-10-22T23:16:34.269679Z"},"2000":{"fee":1.99,"rate":3144.248020701,"markup":1.20598308,"at":"2026-10-22T23:16:34.269679Z"}}},"stablecoin":{"source":"Bitso USDT/COP","bid":3166.8}},{"code":"CR","name":"Costa Rica","currency":"CRC","currencyName":"colones","mid":454.23999999997545,"providers":{"Remitly":{"50":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"100":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"150":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"200":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"250":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"300":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"400":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"500":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"600":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"750":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"1000":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"1500":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"},"2000":{"fee":3.99,"rate":444.3733791914,"markup":2.17211624,"at":"2026-10-22T23:44:19.182341Z"}},"Western Union":{"50":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"100":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"150":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"200":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"250":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"300":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"400":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"500":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"600":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"750":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"1000":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"1500":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"},"2000":{"fee":3.99,"rate":445.9846769439,"markup":1.81739236,"at":"2026-10-22T23:16:34.675306Z"}},"Wise":{"50":{"fee":12.57,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:22Z"},"100":{"fee":13.23,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:23Z"},"150":{"fee":13.88,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:24Z"},"200":{"fee":14.53,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:24Z"},"250":{"fee":15.18,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:25Z"},"300":{"fee":15.83,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:25Z"},"400":{"fee":17.14,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:26Z"},"500":{"fee":18.43,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:27Z"},"600":{"fee":19.74,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:27Z"},"750":{"fee":21.69,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:28Z"},"1000":{"fee":24.96,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:28Z"},"1500":{"fee":31.47,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:29Z"},"2000":{"fee":37.97,"rate":454.24,"markup":0.0,"at":"2026-10-23T00:28:29Z"}}},"stablecoin":null}]}</script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById("rates").textContent || "{}");
+  const FLAGS = { MX: "🇲🇽", GT: "🇬🇹", HN: "🇭🇳", SV: "🇸🇻", DO: "🇩🇴", CO: "🇨🇴", CR: "🇨🇷", NI: "🇳🇮" };
+  const LINKS = {
+    "Wise": "https://wise.com", "Remitly": "https://www.remitly.com", "Western Union": "https://www.westernunion.com",
+    "Xoom": "https://www.xoom.com", "WorldRemit": "https://www.worldremit.com", "Instarem": "https://www.instarem.com",
+    "PayPal": "https://www.paypal.com", "Chase (US)": "https://www.chase.com", "Wells Fargo": "https://www.wellsfargo.com",
+    "OFX": "https://www.ofx.com"
+  };
+  const BANKS = new Set(["Chase (US)", "Wells Fargo"]);
+  const WHOLE = new Set(["MXN", "DOP", "COP", "CRC"]);   // currencies shown without cents
+  const QUICK = [100, 200, 300, 500, 1000];
+  // Stablecoin route estimate: about $1 to move the coins plus ~1% buying and selling.
+  const CRYPTO_FLAT = 1, CRYPTO_PCT = 0.01;
+
+  const countries = (DATA.countries || []).filter(c => Object.keys(c.providers || {}).length);
+  const $ = id => document.getElementById(id);
+  const state = { amount: 300, code: "MX" };
+
+  // Live prices: ask Wise's public comparison feed for the exact country and amount from the
+  // viewer's browser. The hourly snapshot embedded above renders first and stays as the fallback.
+  const LIVE_TTL = 60 * 1000, LIVE_POLL = 2 * 60 * 1000;
+  const live = {};             // "MX|300" -> { at, providers, mid }
+  let liveTimer = null, liveFailed = false;
+  const liveKey = (code, amount) => code + "|" + amount;
+
+  async function fetchLive(c, amount) {
+    const key = liveKey(c.code, amount);
+    const url = "https://api.wise.com/v3/comparisons/?sourceCurrency=USD&targetCurrency=" + c.currency +
+      "&targetCountry=" + c.code + "&sendAmount=" + amount;
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 8000);
+    try {
+      const res = await fetch(url, { signal: ctl.signal });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const body = await res.json();
+      const providers = {}, mids = [];
+      (body.providers || []).forEach(p => {
+        const q = (p.quotes || [])[0];
+        if (!q || !q.rate) return;
+        providers[p.name] = { [amount]: { fee: q.fee, rate: q.rate, markup: q.markup || 0, at: q.dateCollected } };
+        if ((q.markup || 0) < 50) mids.push(q.rate / (1 - (q.markup || 0) / 100));
+      });
+      if (!Object.keys(providers).length) throw new Error("empty");
+      mids.sort((a, b) => a - b);
+      live[key] = { at: Date.now(), providers, mid: mids[Math.floor(mids.length / 2)] || c.mid };
+      liveFailed = false;
+    } catch (e) {
+      liveFailed = true;      // blocked, offline or rate-limited: keep showing the snapshot
+    } finally {
+      clearTimeout(t);
+    }
+    if (liveKey(state.code, state.amount) === key) render();
+  }
+
+  function scheduleLive(c, amount, delay) {
+    clearTimeout(liveTimer);
+    const cached = live[liveKey(c.code, amount)];
+    if (cached && Date.now() - cached.at < LIVE_TTL) return;
+    liveTimer = setTimeout(() => fetchLive(c, amount), delay);
+  }
+
+  function ago(ms) {
+    const s = Math.max(0, Math.round(ms / 1000));
+    if (s < 60) return "hace " + s + " s";
+    const m = Math.round(s / 60);
+    if (m < 60) return "hace " + m + " min";
+    const h = Math.round(m / 60);
+    return "hace " + h + (h === 1 ? " hora" : " horas");
+  }
+
+  function store(k, v) { try { localStorage.setItem("mandamas." + k, v); } catch (e) {} }
+  function recall(k) { try { return localStorage.getItem("mandamas." + k); } catch (e) { return null; } }
+
+  const usd = (n, cents = true) => "$" + n.toLocaleString("es-MX", { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 });
+  function local(n, c) {
+    const d = WHOLE.has(c.currency) ? 0 : 2;
+    return n.toLocaleString("es-MX", { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  // Fee for any amount: straight line between the two sampled amounts around it.
+  // Rate: some services improve the rate above a threshold we can't see, so between samples use the lower one.
+  function quote(points, amount) {
+    const xs = Object.keys(points).map(Number).sort((a, b) => a - b);
+    if (!xs.length) return null;
+    let lo = xs.filter(x => x <= amount).pop(), hi = xs.find(x => x >= amount);
+    if (lo == null) lo = hi; if (hi == null) hi = lo;
+    const a = points[lo], b = points[hi];
+    const fee = lo === hi ? a.fee : a.fee + (b.fee - a.fee) * (amount - lo) / (hi - lo);
+    const p = b.rate < a.rate ? b : a;
+    const received = Math.max(0, amount - fee) * p.rate;
+    return { fee, rate: p.rate, markup: p.markup, at: p.at, received };
+  }
+
+  function rows(c, amount) {
+    return Object.entries(c.providers).map(([name, pts]) => {
+      const q = quote(pts, amount);
+      if (!q) return null;
+      const worthUsd = q.received / c.mid;                 // what the money is worth at the real exchange rate
+      const fxCost = Math.max(0, amount - q.fee) - worthUsd; // hidden in the exchange rate (negative = promo)
+      return { name, ...q, worthUsd, cost: amount - worthUsd, fxCost };
+    }).filter(Boolean).sort((a, b) => b.received - a.received);
+  }
+
+  function daysOld(iso) {
+    if (!iso) return 0;
+    return Math.floor((Date.now() - Date.parse(iso)) / 86400000);
+  }
+
+  // What the viewer is looking at right now: live quotes for this exact amount if we have them.
+  function current() {
+    const c = countries.find(x => x.code === state.code) || countries[0];
+    if (!c) return {};
+    const l = live[liveKey(c.code, state.amount)];
+    return l ? { c: { ...c, providers: l.providers, mid: l.mid }, base: c, liveAt: l.at } : { c, base: c, liveAt: null };
+  }
+
+  function freshness(liveAt) {
+    const p = el("p", "fresh" + (liveAt ? " live" : ""));
+    p.appendChild(el("span", "dot"));
+    if (liveAt) p.append("En vivo · precios consultados " + ago(Date.now() - liveAt));
+    else if (DATA.collected) p.append((liveFailed ? "Sin conexión en vivo · " : "") + "Precios revisados " + ago(Date.now() - Date.parse(DATA.collected)));
+    p.id = "fresh";
+    return p;
+  }
+
+  function renderChips() {
+    const box = $("chips"); box.textContent = "";
+    QUICK.forEach(v => {
+      const b = el("button", "chip", usd(v, false));
+      b.type = "button"; b.setAttribute("aria-pressed", String(state.amount === v));
+      b.addEventListener("click", () => { state.amount = v; $("amount").value = String(v); update(); });
+      box.appendChild(b);
+    });
+  }
+
+  function renderCountries() {
+    const box = $("countries"); box.textContent = "";
+    countries.forEach(c => {
+      const b = el("button", "country"); b.type = "button";
+      b.setAttribute("aria-pressed", String(state.code === c.code));
+      b.appendChild(el("span", "flag", FLAGS[c.code] || ""));
+      const t = el("span", null, c.name);
+      t.appendChild(el("small", null, c.currencyName));
+      b.appendChild(t);
+      b.addEventListener("click", () => { state.code = c.code; history.replaceState(null, "", "#" + c.code.toLowerCase()); update(); });
+      box.appendChild(b);
+    });
+    const ni = el("button", "country"); ni.type = "button"; ni.disabled = true;
+    ni.appendChild(el("span", "flag", FLAGS.NI));
+    const t = el("span", null, "Nicaragua"); t.appendChild(el("small", null, "pronto")); ni.appendChild(t);
+    box.appendChild(ni);
+  }
+
+  function renderAnswer(c, list, amount, liveAt) {
+    const box = $("answer"); box.textContent = "";
+    box.appendChild(freshness(liveAt));
+    if (!list.length) { box.appendChild(el("p", null, "Todavía no tenemos precios para este país.")); return; }
+    const best = list[0], worst = list[list.length - 1];
+    box.appendChild(el("p", "eyebrow", "La mejor opción hoy"));
+    const h = el("h2");
+    h.append("Manda " + usd(amount, amount % 1 !== 0) + " a " + c.name + " con ");
+    h.appendChild(el("strong", null, best.name));
+    box.appendChild(h);
+    const big = el("p", "big num");
+    big.append(local(best.received, c) + " ");
+    big.appendChild(el("small", null, c.currencyName));
+    box.appendChild(big);
+    box.appendChild(el("p", "usd num", c.currency === "USD"
+      ? "Es lo que recibe tu familia, en dólares."
+      : "Es lo que recibe tu familia. Vale " + usd(best.worthUsd) + " dólares al cambio real."));
+    if (list.length > 1 && worst.received < best.received) {
+      const lostLocal = best.received - worst.received, lostUsd = lostLocal / c.mid;
+      const g = el("p", "gap num");
+      g.append("Con " + worst.name + " llegarían ");
+      g.appendChild(el("strong", null, local(lostLocal, c) + " " + c.currencyName + " menos"));
+      g.append(c.currency === "USD" ? "." : " (" + usd(lostUsd) + " dólares).");
+      box.appendChild(g);
+    }
+    if (list.length < 3) box.appendChild(el("p", "usd", "Por ahora tenemos pocos servicios para " + c.name + ". Agregaremos más."));
+  }
+
+  function renderList(c, list) {
+    const box = $("list"); box.textContent = "";
+    if (!list.length) { const li = el("li", "empty", "Todavía no tenemos precios para este país."); box.appendChild(li); return; }
+    list.forEach((r, i) => {
+      const li = el("li", "row" + (i === 0 ? " best" : ""));
+      const top = el("div", "row-top");
+      top.appendChild(el("span", "rank num", String(i + 1)));
+      const who = el("div", "who");
+      who.appendChild(el("h3", null, r.name));
+      const pills = el("div", "pills");
+      if (i === 0) pills.appendChild(el("span", "pill best", "Recibe más"));
+      if (r.markup < -0.1) pills.appendChild(el("span", "pill promo", "Promoción, casi siempre solo el primer envío"));
+      if (BANKS.has(r.name)) pills.appendChild(el("span", "pill", "Solo clientes del banco"));
+      const old = daysOld(r.at);
+      if (old >= 1) pills.appendChild(el("span", "pill old", "Este servicio no ha actualizado su precio en " + old + (old === 1 ? " día" : " días")));
+      if (pills.childNodes.length) who.appendChild(pills);
+      top.appendChild(who);
+      const gets = el("div", "gets");
+      gets.appendChild(el("strong", "num", local(r.received, c)));
+      gets.appendChild(el("span", "num", c.currency === "USD" ? "dólares" : c.currencyName + " · " + usd(r.worthUsd)));
+      top.appendChild(gets);
+      li.appendChild(top);
+
+      const bottom = el("div", "row-bottom");
+      const cost = el("p", "cost num");
+      cost.append("Te cuesta ");
+      cost.appendChild(el("b", r.cost > list[0].cost + 3 ? "bad" : null, usd(Math.max(0, r.cost))));
+      const parts = ["comisión " + usd(r.fee)];
+      if (c.currency !== "USD") parts.push(r.fxCost > -0.005 ? "cambio " + usd(Math.max(0, r.fxCost)) : "cambio a tu favor " + usd(-r.fxCost));
+      cost.append(" (" + parts.join(" + ") + ")");
+      bottom.appendChild(cost);
+      if (LINKS[r.name]) {
+        const a = el("a", "go", "Ir a " + r.name.replace(" (US)", "") + " ↗");
+        a.href = LINKS[r.name]; a.target = "_blank"; a.rel = "noopener";
+        bottom.appendChild(a);
+      }
+      li.appendChild(bottom);
+      box.appendChild(li);
+    });
+  }
+
+  function renderCrypto(c, amount, best) {
+    const box = $("crypto"); box.textContent = "";
+    if (!c.stablecoin) { box.hidden = true; return; }
+    box.hidden = false;
+    const got = Math.max(0, amount - CRYPTO_FLAT) * (1 - CRYPTO_PCT) * c.stablecoin.bid;
+    box.appendChild(el("h2", null, "Opción avanzada: dólares digitales"));
+    box.appendChild(el("p", null, "Si tú y tu familia ya usan una app de cripto, pueden mandar dólares digitales (USDT o USDC) y cambiarlos a " + c.currencyName + " en Bitso."));
+    box.appendChild(el("p", "gets-line num", "Aprox. " + local(got, c) + " " + c.currencyName));
+    const diff = got - (best ? best.received : 0);
+    box.appendChild(el("p", "num", best ? (diff >= 0
+      ? "Unos " + local(diff, c) + " " + c.currencyName + " más que la mejor opción de arriba."
+      : "Unos " + local(-diff, c) + " " + c.currencyName + " menos que la mejor opción de arriba.") : ""));
+    const ul = el("ul");
+    ["Es un estimado: supone $1 para mover los dólares digitales y 1% para comprarlos y venderlos. La tasa de Bitso se revisa cada hora.",
+     "Los dos necesitan cuenta: tú en una app como Coinbase, tu familia en Bitso.",
+     "Si te equivocas de dirección o de red, el dinero se pierde. Haz primero una prueba pequeña."].forEach(t => ul.appendChild(el("li", null, t)));
+    box.appendChild(ul);
+  }
+
+  function renderTerms(c, amount, best) {
+    const box = $("terms"); box.textContent = "";
+    const add = (title, html) => { const d = el("div", "term"); d.appendChild(el("dt", null, title)); const dd = el("dd"); html(dd); d.appendChild(dd); box.appendChild(d); };
+    if (c.currency !== "USD") {
+      add("El cambio real", dd => {
+        dd.append("Hoy 1 dólar vale ");
+        dd.appendChild(el("b", "num", local(c.mid, { currency: "X" }) + " " + c.currencyName));
+        dd.append(" en el mercado. Es el precio que usan los bancos entre ellos.");
+      });
+      add("El cambio que te dan", dd => {
+        dd.append("Casi todos los servicios te dan menos que el cambio real y se quedan la diferencia. Esa ganancia escondida no aparece como comisión, pero sí la pagas.");
+      });
+    }
+    add("La comisión", dd => { dd.append("Es el cargo que sí te muestran, por ejemplo $1.99 o $4.99. Un envío \"sin comisión\" puede salir más caro si el cambio es malo."); });
+    add("Lo que de verdad importa", dd => {
+      dd.append("Fíjate en cuánto ");
+      dd.appendChild(el("b", null, "recibe tu familia"));
+      dd.append(". Ese número ya incluye la comisión y el cambio. Por eso ordenamos la lista así.");
+    });
+  }
+
+  // Draw everything from the current data (live if we have it, else the snapshot).
+  function render() {
+    const { c, liveAt } = current();
+    if (!c) return;
+    state.code = c.code;
+    const amount = state.amount;
+    renderChips(); renderCountries();
+    const list = amount >= 20 ? rows(c, amount) : [];
+    if (amount < 20) {
+      $("answer").textContent = ""; $("answer").appendChild(el("p", null, "Escribe cuánto vas a mandar para ver cuánto recibe tu familia."));
+      $("list").textContent = ""; $("crypto").hidden = true;
+    } else {
+      renderAnswer(c, list, amount, liveAt); renderList(c, list); renderCrypto(c, amount, list[0]);
+    }
+    renderTerms(c, amount, list[0]);
+  }
+
+  // Read the inputs, redraw at once from what we have, then ask for live prices once typing pauses.
+  function update() {
+    const raw = String($("amount").value).replace(/[^0-9.]/g, "");
+    let amount = Math.round(parseFloat(raw) * 100) / 100;
+    const note = $("amount-note");
+    note.hidden = true;
+    if (!isFinite(amount) || amount <= 0) { amount = 0; }
+    if (amount > 0 && amount < 20) { note.textContent = "Escribe al menos $20."; note.hidden = false; }
+    if (amount > 2000) { note.textContent = "Para más de $2,000 los precios pueden cambiar. Confírmalo en la app."; note.hidden = false; }
+    state.amount = amount;
+    store("amount", String(amount)); store("country", state.code);
+    render();
+    const { base } = current();
+    if (base && amount >= 20) scheduleLive(base, amount, 500);
+  }
+
+  // Start: link hash (#gt) wins, then the country this page is about (country pages), then the viewer's last choice, then México / $300.
+  const fromHash = (location.hash || "").slice(1).toUpperCase();
+  const preset = (document.documentElement.dataset.country || "").toUpperCase();
+  if (countries.some(c => c.code === fromHash)) state.code = fromHash;
+  else if (countries.some(c => c.code === preset)) state.code = preset;
+  else if (recall("country")) state.code = recall("country");
+  const savedAmt = parseFloat(recall("amount"));
+  if (savedAmt >= 20) { state.amount = savedAmt; $("amount").value = String(savedAmt); }
+
+  if (DATA.collected) {
+    const d = new Date(DATA.collected);
+    $("stamp").textContent = "Precios revisados el " + d.toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" }) +
+      " a las " + d.toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit" }) + ".";
+  }
+  $("amount").addEventListener("input", update);
+  window.addEventListener("hashchange", () => {
+    const h = location.hash.slice(1).toUpperCase();
+    if (countries.some(c => c.code === h)) { state.code = h; update(); }
+  });
+  // Keep the "hace N s" label honest, and refresh live prices every 2 minutes while the page is visible.
+  setInterval(() => {
+    const f = $("fresh");
+    if (f) f.replaceWith(freshness(current().liveAt));
+  }, 15000);
+  setInterval(() => {
+    if (document.visibilityState !== "visible" || state.amount < 20) return;
+    const { base } = current();
+    if (base) fetchLive(base, state.amount);
+  }, LIVE_POLL);
+  update();
+})();
+</script>

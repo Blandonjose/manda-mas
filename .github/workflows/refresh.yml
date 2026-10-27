@@ -1,0 +1,44 @@
+# Rebuilds the site with fresh prices every hour and publishes it to GitHub Pages.
+# If a price source is down, the run fails and the last good version stays online.
+name: Refresh prices
+
+on:
+  schedule:
+    - cron: "7 * * * *"   # every hour at :07 (GitHub may start it a few minutes late)
+  push:
+    branches: [main]
+  workflow_dispatch:      # "Run workflow" button in the Actions tab
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - id: pages
+        uses: actions/configure-pages@v5
+      - run: python update_rates.py --site _site --base-url "${{ steps.pages.outputs.base_url }}"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
