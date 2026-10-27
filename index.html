@@ -242,6 +242,7 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; borde
   <footer>
     <p id="stamp"></p>
     <p>Manda Más no mueve tu dinero. Comparamos precios públicos de cada servicio. Confirma el precio final en la app del servicio antes de enviar.</p>
+    <p>Algunos botones "Ir a…" pueden ser enlaces de afiliado: si mandas dinero desde ellos, Manda Más puede recibir una comisión sin costo para ti. Eso nunca cambia el orden de la lista, que siempre va de más a menos dinero recibido.</p>
     <p>Fuentes: comparador público de Wise (precios de cada servicio) y Bitso (dólares digitales).</p>
   </footer>
 </div>
@@ -251,11 +252,19 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; borde
 (function () {
   const DATA = JSON.parse(document.getElementById("rates").textContent || "{}");
   const FLAGS = { MX: "🇲🇽", GT: "🇬🇹", HN: "🇭🇳", SV: "🇸🇻", DO: "🇩🇴", CO: "🇨🇴", CR: "🇨🇷", NI: "🇳🇮" };
+  // "Ir a…" buttons. To earn referral commissions, replace a homepage with your tracking link from that
+  // service's affiliate program. The ranking never looks at this list: it is always by amount received.
   const LINKS = {
-    "Wise": "https://wise.com", "Remitly": "https://www.remitly.com", "Western Union": "https://www.westernunion.com",
-    "Xoom": "https://www.xoom.com", "WorldRemit": "https://www.worldremit.com", "Instarem": "https://www.instarem.com",
-    "PayPal": "https://www.paypal.com", "Chase (US)": "https://www.chase.com", "Wells Fargo": "https://www.wellsfargo.com",
-    "OFX": "https://www.ofx.com"
+    "Remitly":       "https://www.remitly.com",        // affiliate program on Impact
+    "Western Union": "https://www.westernunion.com",   // affiliate program on CJ
+    "Instarem":      "https://www.instarem.com",       // Instarem Partner Programme
+    "Wise":          "https://wise.com",               // affiliate program on Partnerize
+    "WorldRemit":    "https://www.worldremit.com",
+    "Xoom":          "https://www.xoom.com",
+    "PayPal":        "https://www.paypal.com",
+    "OFX":           "https://www.ofx.com",
+    "Chase (US)":    "https://www.chase.com",
+    "Wells Fargo":   "https://www.wellsfargo.com"
   };
   const BANKS = new Set(["Chase (US)", "Wells Fargo"]);
   const WHOLE = new Set(["MXN", "DOP", "COP", "CRC"]);   // currencies shown without cents
@@ -464,7 +473,7 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; borde
       bottom.appendChild(cost);
       if (LINKS[r.name]) {
         const a = el("a", "go", "Ir a " + r.name.replace(" (US)", "") + " ↗");
-        a.href = LINKS[r.name]; a.target = "_blank"; a.rel = "noopener";
+        a.href = LINKS[r.name]; a.target = "_blank"; a.rel = "noopener sponsored";
         bottom.appendChild(a);
       }
       li.appendChild(bottom);
