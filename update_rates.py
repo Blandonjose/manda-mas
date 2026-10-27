@@ -87,7 +87,7 @@ def collect():
 SLUGS = {"MX": "mexico", "GT": "guatemala", "HN": "honduras", "SV": "el-salvador",
          "DO": "republica-dominicana", "CO": "colombia", "CR": "costa-rica"}
 FAVICON = ("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E"
-           "%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%230d6a55%22/%3E%3Ctext x=%2216%22 y=%2224%22 "
+           "%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%230b2a5b%22/%3E%3Ctext x=%2216%22 y=%2224%22 "
            "font-size=%2222%22 font-family=%22Arial%22 font-weight=%22700%22 text-anchor=%22middle%22 fill=%22white%22%3E$%3C/text%3E%3C/svg%3E")
 RESET = ("<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}"
          "body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>")
@@ -152,15 +152,22 @@ def build_page(page, data, country, base, nav):
     faqs = faq_items(page)
     if faqs:
         ld.append({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": faqs})
+    meta = head_meta(m["title"], m["desc"], url, base)
+    meta.append('<script type="application/ld+json">' + json.dumps(ld, ensure_ascii=False).replace("</", "<\\/") + "</script>")
+    attr = f' data-country="{country["code"].lower()}"' if country else ""
+    return f'<!doctype html><html lang="es"{attr}><head>' + "".join(meta) + RESET + head + "</head><body>" + body + "</body></html>"
+
+
+def head_meta(title, desc, url, base):
     meta = [
         '<meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
-        f"<title>{esc(m['title'])}</title>",
-        f'<meta name="description" content="{esc(m["desc"])}">',
+        f"<title>{esc(title)}</title>",
+        f'<meta name="description" content="{esc(desc)}">',
         '<meta name="robots" content="index,follow">',
         '<meta property="og:site_name" content="Manda Más">',
-        f'<meta property="og:title" content="{esc(m["title"])}">',
-        f'<meta property="og:description" content="{esc(m["desc"])}">',
+        f'<meta property="og:title" content="{esc(title)}">',
+        f'<meta property="og:description" content="{esc(desc)}">',
         '<meta property="og:type" content="website">',
         '<meta property="og:locale" content="es_US">',
         '<meta name="twitter:card" content="summary_large_image">',
@@ -171,13 +178,37 @@ def build_page(page, data, country, base, nav):
         meta += [f'<link rel="canonical" href="{esc(url)}">', f'<meta property="og:url" content="{esc(url)}">',
                  f'<meta property="og:image" content="{esc(base)}img/og.jpg">',
                  '<meta property="og:image:width" content="1200">', '<meta property="og:image:height" content="630">']
-    meta.append('<script type="application/ld+json">' + json.dumps(ld, ensure_ascii=False).replace("</", "<\\/") + "</script>")
-    attr = f' data-country="{country["code"].lower()}"' if country else ""
-    return f'<!doctype html><html lang="es"{attr}><head>' + "".join(meta) + RESET + head + "</head><body>" + body + "</body></html>"
+    return meta
+
+
+INFO_PAGES = ["quienes-somos", "privacidad", "contacto"]  # pages/<slug>.html, built at /<slug>/
+
+
+def build_info_page(page, slug, base, nav):
+    """A plain text page (about, privacy, contact) wearing the home page's styles, header and footer."""
+    with open(os.path.join(HERE, "pages", slug + ".html"), encoding="utf-8") as f:
+        content = f.read()
+    title = re.search(r"<!--title: (.*?)-->", content).group(1)
+    desc = re.search(r"<!--description: (.*?)-->", content).group(1)
+    content = re.sub(r"<!--(title|description): .*?-->\s*", "", content)
+    head_end = page.index('<div class="wrap">')
+    head = page[:head_end]
+    head = re.sub(r"<title>.*?</title>\s*", "", head, flags=re.S)
+    head = re.sub(r'<meta name="description"[^>]*>\s*', "", head)
+    foot = re.search(r'<footer class="foot">.*?</footer>', page, re.S).group(0)
+    foot = foot.replace("<!--COUNTRY_LINKS-->", nav).replace('href="#top"', 'href="/"').replace('<p id="stamp"></p>', "")
+    body = ('<div class="wrap"><header class="hero slim"><div class="inner"><nav class="nav" aria-label="Principal">'
+            '<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">$</span><span>Manda <span class="mas">Más</span></span></a>'
+            '<div class="nav-links"><a href="/#opciones">Comparar</a><a href="/#como-funciona">Cómo funciona</a><a href="/#preguntas">Preguntas</a></div>'
+            '</nav></div></header>'
+            f'<main class="band"><div class="inner doc">{content}</div></main>{foot}</div>')
+    url = base + slug + "/" if base else None
+    meta = head_meta(title, desc, url, base)
+    return '<!doctype html><html lang="es"><head>' + "".join(meta) + RESET + head + "</head><body>" + body + "</body></html>"
 
 
 def write_site(page, data, site_dir, base):
-    """Build the public website: a home page, one page per country, sitemap.xml and robots.txt."""
+    """Build the public website: a home page, one page per country, the info pages, sitemap.xml and robots.txt."""
     if base and not base.endswith("/"):
         base += "/"
     live = [c for c in data["countries"] if c["providers"]]
@@ -192,10 +223,15 @@ def write_site(page, data, site_dir, base):
         os.makedirs(out_dir, exist_ok=True)
         with open(os.path.join(out_dir, "index.html"), "w", encoding="utf-8") as f:
             f.write(build_page(page, data, country, base, nav))
+    for slug in INFO_PAGES:
+        os.makedirs(os.path.join(site_dir, slug), exist_ok=True)
+        with open(os.path.join(site_dir, slug, "index.html"), "w", encoding="utf-8") as f:
+            f.write(build_info_page(page, slug, base, nav))
     if base:
         day = data["collected"][:10]
         urls = "".join(f"<url><loc>{base}{'' if not c else SLUGS[c['code']] + '/'}</loc><lastmod>{day}</lastmod>"
                        f"<changefreq>hourly</changefreq></url>" for c in pages)
+        urls += "".join(f"<url><loc>{base}{slug}/</loc><changefreq>monthly</changefreq></url>" for slug in INFO_PAGES)
         with open(os.path.join(site_dir, "sitemap.xml"), "w", encoding="utf-8") as f:
             f.write('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + urls + "</urlset>")
         with open(os.path.join(site_dir, "robots.txt"), "w", encoding="utf-8") as f:
