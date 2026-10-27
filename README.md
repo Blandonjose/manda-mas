@@ -1,6 +1,6 @@
 # Manda Más
 
-Compares how much a family receives when you send dollars to México and Central America with each
+Compares how much a family receives when you send dollars to México, Central America and South America with each
 money-transfer service. In Spanish, phone-first, no sign-up. Manda Más never handles anyone's money.
 
 ## How it works

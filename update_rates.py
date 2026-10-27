@@ -32,6 +32,10 @@ COUNTRIES = [
     ("DO", "República Dominicana", "DOP", "pesos dominicanos", None),
     ("CO", "Colombia", "COP", "pesos colombianos", "usdt_cop"),
     ("CR", "Costa Rica", "CRC", "colones", None),
+    ("PE", "Perú", "PEN", "soles", None),
+    ("CL", "Chile", "CLP", "pesos chilenos", None),
+    ("BO", "Bolivia", "BOB", "bolivianos", None),
+    ("UY", "Uruguay", "UYU", "pesos uruguayos", None),
 ]
 
 
@@ -85,7 +89,8 @@ def collect():
 
 
 SLUGS = {"MX": "mexico", "GT": "guatemala", "HN": "honduras", "SV": "el-salvador",
-         "DO": "republica-dominicana", "CO": "colombia", "CR": "costa-rica"}
+         "DO": "republica-dominicana", "CO": "colombia", "CR": "costa-rica",
+         "PE": "peru", "CL": "chile", "BO": "bolivia", "UY": "uruguay"}
 FAVICON = ("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E"
            "%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%230b2a5b%22/%3E%3Ctext x=%2216%22 y=%2224%22 "
            "font-size=%2222%22 font-family=%22Arial%22 font-weight=%22700%22 text-anchor=%22middle%22 fill=%22white%22%3E$%3C/text%3E%3C/svg%3E")
@@ -111,11 +116,11 @@ def page_meta(data, country, base):
     if not country:
         return {
             "path": "",
-            "title": "Manda Más: compara envíos de dinero a México y Centroamérica",
+            "title": "Manda Más: compara envíos de dinero a México y Latinoamérica",
             "desc": "Compara en vivo cuánto recibe tu familia con Remitly, Western Union, Xoom, Wise y más. "
                     "Envíos de dinero desde Estados Unidos a " + ", ".join(names[:-1]) + " y " + names[-1] + ".",
             "lede": "Mira cuánto recibe tu familia con cada servicio antes de mandar dinero. Comparamos Remitly, Western Union, "
-                    "Xoom, Wise y más para envíos a " + ", ".join(names[:-1]) + " y " + names[-1] + ".",
+                    f"Xoom, Wise y más para envíos a México y {len(names) - 1} países más de Latinoamérica.",
         }
     known = ["Remitly", "Western Union", "Xoom", "Wise", "Instarem", "WorldRemit", "PayPal", "OFX"]
     provs = sorted(country["providers"], key=lambda n: (known.index(n) if n in known else len(known), n))
