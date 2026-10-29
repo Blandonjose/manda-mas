@@ -152,6 +152,8 @@ a { color: var(--navy-2); }
 .cost { font-size: 0.92rem; color: var(--muted); }
 .cost b { color: var(--ink); }
 .cost b.bad { color: var(--loss); }
+.age { display: block; margin-top: 2px; font-size: 0.82rem; }
+.age.old { color: var(--loss); }
 .go { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: 700; font-size: 0.95rem; background: var(--btn); color: var(--on-navy); border-radius: 12px; padding: 10px 16px; min-height: 44px; }
 .go:hover { background: var(--navy-2); }
 .row.best .go { background: var(--accent); color: #2a1400; }
@@ -586,11 +588,6 @@ a { color: var(--navy-2); }
     }).filter(Boolean).sort((a, b) => b.received - a.received);
   }
 
-  function daysOld(iso) {
-    if (!iso) return 0;
-    return Math.floor((Date.now() - Date.parse(iso)) / 86400000);
-  }
-
   // What the viewer is looking at right now: refreshed quotes for this exact amount if available.
   function current() {
     const c = countries.find(x => x.code === state.code) || countries[0];
@@ -599,18 +596,32 @@ a { color: var(--navy-2); }
     return l ? { c: { ...c, providers: l.providers, mid: l.mid }, base: c } : { c, base: c };
   }
 
-  function oldestQuoteAt(list) {
-    const times = list.map(r => Date.parse(r.at)).filter(Number.isFinite);
-    return times.length ? Math.min(...times) : (DATA.collected ? Date.parse(DATA.collected) : null);
+  // When this provider's quote was collected (falls back to the snapshot time).
+  function quoteAt(r) {
+    const t = r ? Date.parse(r.at) : NaN;
+    return Number.isFinite(t) ? t : (DATA.collected ? Date.parse(DATA.collected) : null);
   }
 
-  function freshness(dataAt) {
+  // "Datos hace 3 horas" under each row; red with a warning once a quote is a day old.
+  function ageText(at) {
+    const old = Date.now() - at >= 86400000;
+    return "Datos " + ago(Date.now() - at) + (old ? " · el precio puede haber cambiado" : "");
+  }
+  function refreshAges() {
+    document.querySelectorAll(".age[data-at]").forEach(s => {
+      const at = Number(s.dataset.at);
+      s.textContent = ageText(at);
+      s.classList.toggle("old", Date.now() - at >= 86400000);
+    });
+  }
+
+  function freshness(dataAt, name) {
     const p = el("p", "fresh updated");
     p.appendChild(el("span", "dot"));
     if (Number.isFinite(dataAt)) {
       const d = new Date(dataAt);
       p.append("Estimaciones · datos " + ago(Date.now() - dataAt) + (liveFailed ? " · sin actualizar" : ""));
-      p.title = "Dato más antiguo de esta comparación: " + d.toLocaleString("es-MX");
+      p.title = (name ? "Datos de " + name + ": " : "Datos: ") + d.toLocaleString("es-MX");
     } else {
       p.append("Estimaciones" + (liveFailed ? " · sin actualizar" : ""));
     }
@@ -650,7 +661,7 @@ a { color: var(--navy-2); }
     const box = $("answer"); box.textContent = "";
     const head = el("div", "app-head");
     const logo = el("span"); logo.append("Manda "); logo.appendChild(el("span", "mas", "Más"));
-    head.appendChild(logo); head.appendChild(freshness(dataAt));
+    head.appendChild(logo); head.appendChild(freshness(dataAt, list[0] && list[0].name));
     box.appendChild(head);
     const fa = $("float-a"), fb = $("float-b");
     fa.hidden = true; fb.hidden = true;
@@ -713,8 +724,6 @@ a { color: var(--navy-2); }
       if (i === 0) pills.appendChild(el("span", "pill best", "Recibe más"));
       if (r.markup < -0.1) pills.appendChild(el("span", "pill promo", "Promoción, casi siempre solo el primer envío"));
       if (BANKS.has(r.name)) pills.appendChild(el("span", "pill", "Solo clientes del banco"));
-      const old = daysOld(r.at);
-      if (old >= 1) pills.appendChild(el("span", "pill old", "Este servicio no ha actualizado su precio en " + old + (old === 1 ? " día" : " días")));
       if (pills.childNodes.length) who.appendChild(pills);
       top.appendChild(who);
       const gets = el("div", "gets");
@@ -730,6 +739,13 @@ a { color: var(--navy-2); }
       const parts = ["comisión " + usd(r.fee)];
       if (c.currency !== "USD") parts.push(r.fxCost > -0.005 ? "cambio " + usd(Math.max(0, r.fxCost)) : "cambio a tu favor " + usd(-r.fxCost));
       cost.append(" (" + parts.join(" + ") + ")");
+      const at = quoteAt(r);
+      if (Number.isFinite(at)) {
+        const age = el("span", "age", ageText(at));
+        age.dataset.at = String(at);
+        if (Date.now() - at >= 86400000) age.classList.add("old");
+        cost.appendChild(age);
+      }
       bottom.appendChild(cost);
       if (LINKS[r.name]) {
         const a = el("a", "go", "Ir a " + r.name.replace(" (US)", "") + " ↗");
@@ -790,7 +806,7 @@ a { color: var(--navy-2); }
     const amount = state.amount;
     renderChips(); renderCountries();
     const list = amount >= 20 ? rows(c, amount) : [];
-    const dataAt = oldestQuoteAt(list);
+    const dataAt = quoteAt(list[0]);
     if (amount < 20) {
       $("answer").textContent = ""; $("answer").appendChild(el("p", null, "Escribe cuánto vas a mandar para ver cuánto recibe tu familia."));
       $("list").textContent = ""; $("crypto").hidden = true;
@@ -842,7 +858,9 @@ a { color: var(--navy-2); }
   setInterval(() => {
     const f = $("fresh");
     const { c } = current();
-    if (f && c) f.replaceWith(freshness(oldestQuoteAt(rows(c, state.amount))));
+    const top = c && state.amount >= 20 ? rows(c, state.amount)[0] : null;
+    if (f && top) f.replaceWith(freshness(quoteAt(top), top.name));
+    refreshAges();
   }, 15000);
   setInterval(() => {
     if (document.visibilityState !== "visible" || state.amount < 20) return;
