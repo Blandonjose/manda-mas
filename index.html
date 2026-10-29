@@ -1,11 +1,11 @@
 <title>Manda Más</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Compara cuánto recibe tu familia con cada servicio de envío de dinero a México y Latinoamérica.">
+<meta name="description" content="Compara estimaciones de cuánto puede recibir tu familia al enviar dinero desde Estados Unidos a México y Latinoamérica.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
 <style>
-/* Layout: full-width bands. Blue hero (headline + calculator | live phone) -> ranking on near-white -> family photo story
+/* Layout: full-width bands. Blue hero (headline + calculator | quote phone) -> ranking on near-white -> family photo story
    -> how it works -> explainer + FAQ -> blue footer. Each band centers an .inner column with the side gutter. */
 :root {
   --navy: #0b2a5b;        /* brand blue: hero, footer, buttons */
@@ -99,7 +99,7 @@ a { color: var(--navy-2); }
 .country:disabled { opacity: 0.5; cursor: default; }
 .warn { color: var(--loss); font-size: 0.92rem; }
 
-/* Phone mockup showing the live answer */
+/* Phone mockup showing the estimated answer */
 .phone-wrap { position: relative; justify-self: center; width: min(100%, 340px); }
 .phone { position: relative; background: #0a1020; border-radius: 46px; padding: 12px; box-shadow: 0 40px 80px -30px rgba(4, 14, 34, .7), inset 0 0 0 2px #2a3550; transform: rotate(2deg); }
 .phone::before { content: ""; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 92px; height: 24px; border-radius: 14px; background: #0a1020; z-index: 2; }
@@ -108,8 +108,8 @@ a { color: var(--navy-2); }
 .app-head .mas { color: var(--accent-deep); }
 .fresh { display: inline-flex; align-items: center; gap: 7px; font-size: 0.78rem; font-weight: 700; color: var(--muted); }
 .fresh .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
-.fresh.live { color: #1b8a5a; }
-.fresh.live .dot { background: #1fb36f; box-shadow: 0 0 0 3px rgba(31, 179, 111, .2); }
+.fresh.updated { color: #1b8a5a; }
+.fresh.updated .dot { background: #1fb36f; box-shadow: 0 0 0 3px rgba(31, 179, 111, .2); }
 .best-card { background: var(--surface); border-radius: 20px; padding: 16px; display: grid; gap: 6px; box-shadow: 0 10px 24px -16px rgba(15, 31, 58, .5); }
 .best-card .eyebrow { color: var(--muted); font-size: 0.7rem; }
 .best-card h2 { font-size: 1.1rem; font-weight: 600; }
@@ -160,6 +160,7 @@ a { color: var(--navy-2); }
 .crypto h2 { font-size: 1.2rem; }
 .crypto .gets-line { font-family: var(--display); font-weight: 800; font-size: 1.45rem; color: var(--navy-2); }
 .crypto ul { margin: 0; padding-left: 1.2em; color: var(--muted); font-size: 0.92rem; display: grid; gap: 4px; }
+.data-note { margin: 14px 0 0; color: var(--muted); font-size: 0.9rem; max-width: 88ch; }
 
 /* Families story */
 .story { background: var(--surface); }
@@ -260,12 +261,12 @@ a { color: var(--navy-2); }
       </nav>
       <div class="hero-grid">
         <div class="hero-copy">
-          <p class="eyebrow">Gratis · Precios en vivo · En español</p>
+          <p class="eyebrow">Gratis · Estimaciones actualizadas · En español</p>
           <h1>Que llegue <em>más dinero</em> a tu familia</h1>
-          <p class="lede" id="lede">Mira cuánto recibe tu familia con cada servicio antes de mandar dinero. Comparamos Remitly, Western Union, Xoom, Wise y más para envíos a México, Guatemala, Honduras, El Salvador, República Dominicana, Colombia y Costa Rica.</p>
+          <p class="lede" id="lede">Mira cuánto puede recibir tu familia con cada servicio al mandar dinero desde Estados Unidos. Comparamos Remitly, Western Union, Xoom, Wise y más para envíos a México, Guatemala, Honduras, El Salvador, República Dominicana, Colombia y Costa Rica.</p>
           <section class="ask" aria-label="Tu envío">
             <div>
-              <label class="label" for="amount">¿Cuántos dólares vas a mandar?</label>
+              <label class="label" for="amount">¿Cuántos dólares vas a mandar desde Estados Unidos?</label>
               <div class="amount">
                 <b aria-hidden="true">$</b>
                 <input id="amount" inputmode="decimal" autocomplete="off" value="300" aria-describedby="amount-note">
@@ -299,6 +300,7 @@ a { color: var(--navy-2); }
         <p>De más a menos dinero recibido</p>
       </div>
       <ol class="list" id="list"></ol>
+      <p class="data-note">Datos de comparación: Wise. Los precios, los montos recibidos y los plazos de entrega son estimados y pueden cambiar. Las comparaciones usan Estados Unidos como país de origen y, cuando aplica, transferencia bancaria para pagar y depósito en cuenta bancaria para recibir. Confirma las condiciones finales con el proveedor antes de enviar. <a href="https://wise.com/us/compare/disclaimer" target="_blank" rel="noopener">Aviso de comparación de Wise ↗</a></p>
       <section class="crypto" id="crypto" hidden></section>
     </div>
   </section>
@@ -315,7 +317,7 @@ a { color: var(--navy-2); }
         <h2 class="section-title" id="story-title">Cada dólar que mandas es un esfuerzo. Que no se pierda en comisiones.</h2>
         <p>Muchos servicios cobran una comisión pequeña y se quedan otra parte en el tipo de cambio. Manda Más te enseña el número que importa: cuánto llega a las manos de tu familia.</p>
         <ul class="perks">
-          <li><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span><div><b>Precios en vivo</b><span>Consultamos los precios en el momento en que abres la página.</span></div></li>
+          <li><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span><div><b>Estimaciones actualizadas</b><span>Consultamos datos recientes y mostramos cuándo fueron recopilados.</span></div></li>
           <li><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 15h3"/></svg></span><div><b>Hasta 10 servicios lado a lado</b><span>Remitly, Western Union, Xoom, Wise, bancos y más.</span></div></li>
           <li><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></span><div><b>Gratis y sin registro</b><span>No pedimos tus datos ni tocamos tu dinero.</span></div></li>
         </ul>
@@ -357,7 +359,7 @@ a { color: var(--navy-2); }
         </details>
         <details>
           <summary>¿Qué tan actualizados están los precios?</summary>
-          <p>Al abrir la página consultamos los precios en ese momento, y también los revisamos cada hora. Cada servicio actualiza su precio a su propio ritmo, así que confirma el monto final en su app antes de pagar.</p>
+          <p>Mostramos estimaciones recientes y la antigüedad de los datos usados. Cada servicio actualiza sus precios y plazos de entrega a su propio ritmo, así que confirma el monto, la comisión, el tipo de cambio y el plazo final en su app antes de pagar.</p>
         </details>
         <details>
           <summary>¿Manda Más cobra algo o maneja mi dinero?</summary>
@@ -377,9 +379,9 @@ a { color: var(--navy-2); }
       <!--COUNTRY_LINKS-->
       <p id="stamp"></p>
       <p class="foot-links"><a href="/quienes-somos/">Quiénes somos</a><a href="/privacidad/">Privacidad</a><a href="/contacto/">Contacto</a><a href="mailto:hola@mandamasdinero.com">hola@mandamasdinero.com</a></p>
-      <p>Manda Más no mueve tu dinero. Comparamos precios públicos de cada servicio. Confirma el precio final en la app del servicio antes de enviar.</p>
+      <p>Manda Más no mueve tu dinero. Comparamos estimaciones públicas de cada servicio para envíos desde Estados Unidos. Confirma el precio y el plazo final en la app del servicio antes de enviar.</p>
       <p>Algunos botones "Ir a…" pueden ser enlaces de afiliado: si mandas dinero desde ellos, Manda Más puede recibir una comisión sin costo para ti. Eso nunca cambia el orden de la lista, que siempre va de más a menos dinero recibido.</p>
-      <p>Fuentes: comparador público de Wise (precios de cada servicio) y Bitso (dólares digitales). Fotos de Unsplash: <a href="https://unsplash.com/@jackhammer">@jackhammer</a>, <a href="https://unsplash.com/@ghenmar">@ghenmar</a> y <a href="https://unsplash.com/@josuemichelphotography">@josuemichelphotography</a>.</p>
+      <p>Datos de comparación: Wise. Los importes y plazos son estimados y pueden cambiar. Confirma las condiciones finales con el proveedor antes de enviar. <a href="https://wise.com/us/compare/disclaimer" target="_blank" rel="noopener">Aviso de comparación de Wise ↗</a>. Datos de dólares digitales: Bitso. Fotos de Unsplash: <a href="https://unsplash.com/@jackhammer">@jackhammer</a>, <a href="https://unsplash.com/@ghenmar">@ghenmar</a> y <a href="https://unsplash.com/@josuemichelphotography">@josuemichelphotography</a>.</p>
     </div>
   </footer>
 </div>
@@ -416,21 +418,28 @@ a { color: var(--navy-2); }
   const $ = id => document.getElementById(id);
   const state = { amount: 300, code: "MX" };
 
-  // Live prices: ask Wise's public comparison feed for the exact country and amount from the
+  // Updated estimates: ask Wise's comparison feed for the exact route and amount from the
   // viewer's browser. The hourly snapshot embedded above renders first and stays as the fallback.
   const LIVE_TTL = 60 * 1000, LIVE_POLL = 2 * 60 * 1000;
-  const live = {};             // "MX|300" -> { at, providers, mid }
-  let liveTimer = null, liveFailed = false;
+  const live = {};             // "MX|300" -> { fetchedAt, providers, mid }
+  let liveTimer = null, liveFailed = false, retryAfter = 0;
   const liveKey = (code, amount) => code + "|" + amount;
 
   async function fetchLive(c, amount) {
     const key = liveKey(c.code, amount);
-    const url = "https://api.wise.com/v3/comparisons/?sourceCurrency=USD&targetCurrency=" + c.currency +
+    const url = "https://api.wise.com/v3/comparisons/?sourceCountry=US&sourceCurrency=USD&targetCurrency=" + c.currency +
       "&targetCountry=" + c.code + "&sendAmount=" + amount;
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), 8000);
     try {
       const res = await fetch(url, { signal: ctl.signal });
+      if (res.status === 429) {
+        const value = res.headers.get("Retry-After");
+        const seconds = Number(value);
+        const until = Number.isFinite(seconds) ? Date.now() + seconds * 1000 : Date.parse(value || "");
+        retryAfter = Number.isFinite(until) ? Math.max(until, Date.now() + 5 * 60 * 1000) : Date.now() + 5 * 60 * 1000;
+        throw new Error("HTTP 429");
+      }
       if (!res.ok) throw new Error("HTTP " + res.status);
       const body = await res.json();
       const providers = {}, mids = [];
@@ -442,8 +451,8 @@ a { color: var(--navy-2); }
       });
       if (!Object.keys(providers).length) throw new Error("empty");
       mids.sort((a, b) => a - b);
-      live[key] = { at: Date.now(), providers, mid: mids[Math.floor(mids.length / 2)] || c.mid };
-      liveFailed = false;
+      live[key] = { fetchedAt: Date.now(), providers, mid: mids[Math.floor(mids.length / 2)] || c.mid };
+      liveFailed = false; retryAfter = 0;
     } catch (e) {
       liveFailed = true;      // blocked, offline or rate-limited: keep showing the snapshot
     } finally {
@@ -455,7 +464,7 @@ a { color: var(--navy-2); }
   function scheduleLive(c, amount, delay) {
     clearTimeout(liveTimer);
     const cached = live[liveKey(c.code, amount)];
-    if (cached && Date.now() - cached.at < LIVE_TTL) return;
+    if (Date.now() < retryAfter || (cached && Date.now() - cached.fetchedAt < LIVE_TTL)) return;
     liveTimer = setTimeout(() => fetchLive(c, amount), delay);
   }
 
@@ -465,7 +474,9 @@ a { color: var(--navy-2); }
     const m = Math.round(s / 60);
     if (m < 60) return "hace " + m + " min";
     const h = Math.round(m / 60);
-    return "hace " + h + (h === 1 ? " hora" : " horas");
+    if (h < 48) return "hace " + h + (h === 1 ? " hora" : " horas");
+    const d = Math.round(h / 24);
+    return "hace " + d + (d === 1 ? " día" : " días");
   }
 
   function store(k, v) { try { localStorage.setItem("mandamas." + k, v); } catch (e) {} }
@@ -511,7 +522,7 @@ a { color: var(--navy-2); }
     return a < 200 ? "0-199" : a < 500 ? "200-499" : a < 1000 ? "500-999" : "1000+";
   }
   // quote_view: once results settle for 1.5 s, and only when what they show changed
-  // (country, amount bucket, number of services or the top service). Live refreshes and
+  // (country, amount bucket, number of services or the top service). Quote refreshes and
   // typing inside the same bucket don't count as a new view.
   let quoteTimer = null, lastQuote = "";
   function scheduleQuoteView(c, list, amount) {
@@ -580,19 +591,29 @@ a { color: var(--navy-2); }
     return Math.floor((Date.now() - Date.parse(iso)) / 86400000);
   }
 
-  // What the viewer is looking at right now: live quotes for this exact amount if we have them.
+  // What the viewer is looking at right now: refreshed quotes for this exact amount if available.
   function current() {
     const c = countries.find(x => x.code === state.code) || countries[0];
     if (!c) return {};
     const l = live[liveKey(c.code, state.amount)];
-    return l ? { c: { ...c, providers: l.providers, mid: l.mid }, base: c, liveAt: l.at } : { c, base: c, liveAt: null };
+    return l ? { c: { ...c, providers: l.providers, mid: l.mid }, base: c } : { c, base: c };
   }
 
-  function freshness(liveAt) {
-    const p = el("p", "fresh" + (liveAt ? " live" : ""));
+  function oldestQuoteAt(list) {
+    const times = list.map(r => Date.parse(r.at)).filter(Number.isFinite);
+    return times.length ? Math.min(...times) : (DATA.collected ? Date.parse(DATA.collected) : null);
+  }
+
+  function freshness(dataAt) {
+    const p = el("p", "fresh updated");
     p.appendChild(el("span", "dot"));
-    if (liveAt) p.append("En vivo · " + ago(Date.now() - liveAt));
-    else if (DATA.collected) p.append("Revisado " + ago(Date.now() - Date.parse(DATA.collected)));
+    if (Number.isFinite(dataAt)) {
+      const d = new Date(dataAt);
+      p.append("Estimaciones · datos " + ago(Date.now() - dataAt) + (liveFailed ? " · sin actualizar" : ""));
+      p.title = "Dato más antiguo de esta comparación: " + d.toLocaleString("es-MX");
+    } else {
+      p.append("Estimaciones" + (liveFailed ? " · sin actualizar" : ""));
+    }
     p.id = "fresh";
     return p;
   }
@@ -625,11 +646,11 @@ a { color: var(--navy-2); }
     box.appendChild(ni);
   }
 
-  function renderAnswer(c, list, amount, liveAt) {
+  function renderAnswer(c, list, amount, dataAt) {
     const box = $("answer"); box.textContent = "";
     const head = el("div", "app-head");
     const logo = el("span"); logo.append("Manda "); logo.appendChild(el("span", "mas", "Más"));
-    head.appendChild(logo); head.appendChild(freshness(liveAt));
+    head.appendChild(logo); head.appendChild(freshness(dataAt));
     box.appendChild(head);
     const fa = $("float-a"), fb = $("float-b");
     fa.hidden = true; fb.hidden = true;
@@ -761,25 +782,26 @@ a { color: var(--navy-2); }
     });
   }
 
-  // Draw everything from the current data (live if we have it, else the snapshot).
+  // Draw everything from the current data (refreshed quotes if available, otherwise the snapshot).
   function render() {
-    const { c, liveAt } = current();
+    const { c } = current();
     if (!c) return;
     state.code = c.code;
     const amount = state.amount;
     renderChips(); renderCountries();
     const list = amount >= 20 ? rows(c, amount) : [];
+    const dataAt = oldestQuoteAt(list);
     if (amount < 20) {
       $("answer").textContent = ""; $("answer").appendChild(el("p", null, "Escribe cuánto vas a mandar para ver cuánto recibe tu familia."));
       $("list").textContent = ""; $("crypto").hidden = true;
     } else {
-      renderAnswer(c, list, amount, liveAt); renderList(c, list); renderCrypto(c, amount, list[0]);
+      renderAnswer(c, list, amount, dataAt); renderList(c, list); renderCrypto(c, amount, list[0]);
     }
     if (amount >= 20) scheduleQuoteView(c, list, amount); else clearTimeout(quoteTimer);
     renderTerms(c, amount, list[0]);
   }
 
-  // Read the inputs, redraw at once from what we have, then ask for live prices once typing pauses.
+  // Read the inputs, redraw at once from what we have, then ask for updated estimates once typing pauses.
   function update() {
     const raw = String($("amount").value).replace(/[^0-9.]/g, "");
     let amount = Math.round(parseFloat(raw) * 100) / 100;
@@ -806,7 +828,7 @@ a { color: var(--navy-2); }
 
   if (DATA.collected) {
     const d = new Date(DATA.collected);
-    $("stamp").textContent = "Precios revisados el " + d.toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" }) +
+    $("stamp").textContent = "Datos consultados el " + d.toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" }) +
       " a las " + d.toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit" }) + ".";
   }
   $("amount").addEventListener("input", update);
@@ -816,15 +838,16 @@ a { color: var(--navy-2); }
     const h = location.hash.slice(1).toUpperCase();
     if (countries.some(c => c.code === h)) { state.code = h; update(); }
   });
-  // Keep the "hace N s" label honest, and refresh live prices every 2 minutes while the page is visible.
+  // Keep the age label honest, and request updated estimates every 2 minutes while the page is visible.
   setInterval(() => {
     const f = $("fresh");
-    if (f) f.replaceWith(freshness(current().liveAt));
+    const { c } = current();
+    if (f && c) f.replaceWith(freshness(oldestQuoteAt(rows(c, state.amount))));
   }, 15000);
   setInterval(() => {
     if (document.visibilityState !== "visible" || state.amount < 20) return;
     const { base } = current();
-    if (base) fetchLive(base, state.amount);
+    if (base && Date.now() >= retryAfter) fetchLive(base, state.amount);
   }, LIVE_POLL);
   update();
 })();

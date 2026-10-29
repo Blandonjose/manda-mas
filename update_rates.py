@@ -1,4 +1,4 @@
-"""Collect live USD -> Latin America remittance quotes and write them into index.html.
+"""Collect estimated USD -> Latin America remittance quotes and write them into index.html.
 
 Run:  python3 remesas/update_rates.py
 Sources (public, no keys): Wise's provider-comparison feed (10+ money-transfer services)
@@ -59,7 +59,8 @@ def get_json(url, params):
 
 def wise_quotes(currency, country, amount):
     data = get_json("https://api.wise.com/v3/comparisons/", {
-        "sourceCurrency": "USD", "targetCurrency": currency, "targetCountry": country, "sendAmount": amount})
+        "sourceCountry": "US", "sourceCurrency": "USD", "targetCurrency": currency,
+        "targetCountry": country, "sendAmount": amount})
     out = []
     for p in data.get("providers", []):
         q = (p.get("quotes") or [None])[0]
@@ -122,9 +123,9 @@ def page_meta(data, country, base):
         return {
             "path": "",
             "title": "Manda Más: compara envíos de dinero a México y Latinoamérica",
-            "desc": "Compara en vivo cuánto recibe tu familia con Remitly, Western Union, Xoom, Wise y más. "
+            "desc": "Compara estimaciones actualizadas de cuánto recibe tu familia con Remitly, Western Union, Xoom, Wise y más. "
                     "Envíos de dinero desde Estados Unidos a " + ", ".join(names[:-1]) + " y " + names[-1] + ".",
-            "lede": "Mira cuánto recibe tu familia con cada servicio antes de mandar dinero. Comparamos Remitly, Western Union, "
+            "lede": "Mira cuánto puede recibir tu familia con cada servicio al mandar dinero desde Estados Unidos. Comparamos Remitly, Western Union, "
                     f"Xoom, Wise y más para envíos a México y {len(names) - 1} países más de Latinoamérica.",
         }
     known = ["Remitly", "Western Union", "Xoom", "Wise", "Instarem", "WorldRemit", "PayPal", "OFX"]
@@ -138,10 +139,10 @@ def page_meta(data, country, base):
     return {
         "path": SLUGS[country["code"]] + "/",
         "title": f"Enviar dinero a {country['name']} desde Estados Unidos: compara precios | Manda Más",
-        "desc": f"¿Cuál es la forma más barata de mandar dinero a {country['name']}? Compara en vivo {shown}, "
-                f"y mira cuántos {country['currencyName']} recibe tu familia.",
-        "lede": f"Mira cuántos {country['currencyName']} recibe tu familia en {country['name']} con cada servicio, "
-                f"antes de mandar dinero. Comparamos {shown}.",
+        "desc": f"¿Cuál es la forma más barata de mandar dinero a {country['name']}? Compara estimaciones actualizadas de {shown} "
+                f"y mira cuántos {country['currencyName']} puede recibir tu familia.",
+        "lede": f"Mira cuántos {country['currencyName']} puede recibir tu familia en {country['name']} con cada servicio "
+                f"al mandar dinero desde Estados Unidos. Comparamos {shown}.",
     }
 
 
