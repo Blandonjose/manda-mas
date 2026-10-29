@@ -162,6 +162,7 @@ a { color: var(--navy-2); }
 .crypto h2 { font-size: 1.2rem; }
 .crypto .gets-line { font-family: var(--display); font-weight: 800; font-size: 1.45rem; color: var(--navy-2); }
 .crypto ul { margin: 0; padding-left: 1.2em; color: var(--muted); font-size: 0.92rem; display: grid; gap: 4px; }
+.rank-note { margin: -6px 0 16px; color: var(--muted); font-size: 0.9rem; max-width: 88ch; }
 .data-note { margin: 14px 0 0; color: var(--muted); font-size: 0.9rem; max-width: 88ch; }
 
 /* Families story */
@@ -301,6 +302,7 @@ a { color: var(--navy-2); }
         <h2 class="section-title" id="list-title">Todas las opciones</h2>
         <p>De más a menos dinero recibido</p>
       </div>
+      <p class="rank-note"><b>Ninguna empresa puede pagar para subir en esta lista:</b> el orden depende solo de cuánto recibe tu familia. Algunos botones "Ir a…" son enlaces de afiliado: si envías desde ellos, Manda Más puede recibir una comisión, sin costo extra para ti.</p>
       <ol class="list" id="list"></ol>
       <p class="data-note">Datos de comparación: Wise. Los precios, los montos recibidos y los plazos de entrega son estimados y pueden cambiar. Las comparaciones usan Estados Unidos como país de origen y, cuando aplica, transferencia bancaria para pagar y depósito en cuenta bancaria para recibir. Confirma las condiciones finales con el proveedor antes de enviar. <a href="https://wise.com/us/compare/disclaimer" target="_blank" rel="noopener">Aviso de comparación de Wise ↗</a></p>
       <section class="crypto" id="crypto" hidden></section>
@@ -398,8 +400,8 @@ a { color: var(--navy-2); }
   const LINKS = {
     "Remitly":       "https://www.remitly.com",        // affiliate program on Impact
     "Western Union": "https://www.westernunion.com",   // affiliate program on CJ
-    "Instarem":      "https://www.instarem.com",       // Instarem Partner Programme
-    "Wise":          "https://wise.com",               // affiliate program on Partnerize
+    "Instarem":      "https://instarem.prf.hn/click/camref:1011l6uM4Y",   // referral link (Partnerize)
+    "Wise":          "https://wise.prf.hn/click/camref:1110lSter",        // referral link (Partnerize, USD campaign)
     "WorldRemit":    "https://www.worldremit.com",
     "Xoom":          "https://www.xoom.com",
     "PayPal":        "https://www.paypal.com",
@@ -409,7 +411,7 @@ a { color: var(--navy-2); }
   };
   // Analytics only: add a service name here once its LINKS url above is a referral link, so
   // outbound_service_click reports affiliate: true for it.
-  const AFFILIATE = new Set([]);
+  const AFFILIATE = new Set(["Instarem", "Wise"]);
   const BANKS = new Set(["Chase (US)", "Wells Fargo"]);
   const WHOLE = new Set(["MXN", "DOP", "COP", "CRC", "CLP", "UYU"]);   // currencies shown without cents
   const QUICK = [100, 200, 300, 500, 1000];
