@@ -33,3 +33,10 @@ python3 update_rates.py --site _site    # also build the website into _site/
 
 Umami, with no cookies: `quote_view` and `outbound_service_click`. Set `UMAMI_WEBSITE_ID` in `update_rates.py`.
 Events, properties and how to test them are in [ANALYTICS.md](ANALYTICS.md).
+
+## Guides
+
+Spanish articles live in `guides/<slug>.html` and are built at `/guias/<slug>/`, with an index at `/guias/`.
+Add a new one to `GUIDES` in `update_rates.py`. Tables come from the hourly data through placeholders
+(`<!--TABLE:MX:300-->`, `<!--VS:Remitly|Western Union:300-->`, `<!--TOP:MX:300-->`, `<!--DATE-->`), so the numbers
+stay as current as the comparison. Amounts must be one of `BRACKETS`. Their "Ir a…" links use `LINKS` from `index.html`.

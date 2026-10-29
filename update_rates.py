@@ -196,15 +196,29 @@ def head_meta(title, desc, url, base):
 
 
 INFO_PAGES = ["quienes-somos", "privacidad", "contacto"]  # pages/<slug>.html, built at /<slug>/
+# guides/<slug>.html, built at /guias/<slug>/ and listed on /guias/ in this order
+GUIDES = ["forma-mas-barata-mandar-dinero-a-mexico", "remitly-vs-western-union", "envios-sin-comision",
+          "tipo-de-cambio", "promociones-primer-envio", "que-necesito-para-mandar-dinero"]
+NAV_LINKS = ('<div class="nav-links"><a href="/#opciones">Comparar</a><a href="/#como-funciona">Cómo funciona</a>'
+             '<a href="/guias/">Guías</a><a href="/#preguntas">Preguntas</a></div>')
+
+
+def read_doc(folder, slug):
+    """A content file with <!--title: --> and <!--description: --> comments on top."""
+    with open(os.path.join(HERE, folder, slug + ".html"), encoding="utf-8") as f:
+        content = f.read()
+    title = re.search(r"<!--title: (.*?)-->", content).group(1)
+    desc = re.search(r"<!--description: (.*?)-->", content).group(1)
+    return title, desc, re.sub(r"<!--(title|description): .*?-->\s*", "", content)
 
 
 def build_info_page(page, slug, base, nav):
     """A plain text page (about, privacy, contact) wearing the home page's styles, header and footer."""
-    with open(os.path.join(HERE, "pages", slug + ".html"), encoding="utf-8") as f:
-        content = f.read()
-    title = re.search(r"<!--title: (.*?)-->", content).group(1)
-    desc = re.search(r"<!--description: (.*?)-->", content).group(1)
-    content = re.sub(r"<!--(title|description): .*?-->\s*", "", content)
+    title, desc, content = read_doc("pages", slug)
+    return doc_page(page, content, title, desc, slug + "/", base, nav)
+
+
+def doc_page(page, content, title, desc, path, base, nav, ld=None):
     head_end = page.index('<div class="wrap">')
     head = page[:head_end]
     head = re.sub(r"<title>.*?</title>\s*", "", head, flags=re.S)
@@ -213,12 +227,164 @@ def build_info_page(page, slug, base, nav):
     foot = foot.replace("<!--COUNTRY_LINKS-->", nav).replace('href="#top"', 'href="/"').replace('<p id="stamp"></p>', "")
     body = ('<div class="wrap"><header class="hero slim"><div class="inner"><nav class="nav" aria-label="Principal">'
             '<a class="logo" href="/"><span class="logo-mark" aria-hidden="true">$</span><span>Manda <span class="mas">Más</span></span></a>'
-            '<div class="nav-links"><a href="/#opciones">Comparar</a><a href="/#como-funciona">Cómo funciona</a><a href="/#preguntas">Preguntas</a></div>'
-            '</nav></div></header>'
+            + NAV_LINKS + '</nav></div></header>'
             f'<main class="band"><div class="inner doc">{content}</div></main>{foot}</div>')
-    url = base + slug + "/" if base else None
+    url = base + path if base else None
     meta = head_meta(title, desc, url, base)
+    if ld:
+        if url:
+            ld["url"] = url
+        meta.append('<script type="application/ld+json">' + json.dumps(ld, ensure_ascii=False).replace("</", "<\\/") + "</script>")
     return '<!doctype html><html lang="es"><head>' + "".join(meta) + RESET + head + "</head><body>" + body + "</body></html>"
+
+
+# Guides: Spanish articles with tables built from the hourly data, so every number on them is as
+# current as the comparison itself. Placeholders a guide can use:
+#   <!--TABLE:MX:300-->              every service for that country and amount (amount must be in BRACKETS)
+#   <!--VS:Remitly|Western Union:300-->  those two services side by side in every country
+#   <!--TOP:MX:300-->                name of the service that delivers the most
+#   <!--DATE-->                      day the data was collected
+MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
+          "noviembre", "diciembre"]
+WHOLE = {"MXN", "DOP", "COP", "CRC", "CLP", "UYU"}   # same as WHOLE in index.html
+BANKS = {"Chase (US)", "Wells Fargo"}                 # same as BANKS in index.html
+
+
+def parse_time(iso):
+    return datetime.fromisoformat(iso.replace("Z", "+00:00")) if iso else None
+
+
+def fecha(iso):
+    d = parse_time(iso)
+    return f"{d.day} de {MONTHS[d.month - 1]} de {d.year}"
+
+
+def page_links(page):
+    """LINKS and AFFILIATE from index.html, so guides send people to the same (referral) links as the comparison."""
+    block = re.search(r"const LINKS = \{(.*?)\};", page, re.S).group(1)
+    aff = re.search(r"const AFFILIATE = new Set\(\[(.*?)\]\)", page).group(1)
+    return dict(re.findall(r'"([^"]+)":\s*"([^"]+)"', block)), set(re.findall(r'"([^"]+)"', aff))
+
+
+def ranked(country, amount):
+    """Services ranked by what the family receives for one sampled amount (same math as quote() in index.html)."""
+    out = []
+    for name, pts in country["providers"].items():
+        q = pts.get(str(amount))
+        if not q:
+            continue
+        received = max(0, amount - q["fee"]) * q["rate"]
+        fx = max(0, amount - q["fee"]) - received / country["mid"] if country["mid"] else 0
+        out.append({"name": name, "fee": q["fee"], "received": received, "fx": fx, "at": q["at"], "markup": q["markup"]})
+    return sorted(out, key=lambda r: -r["received"])
+
+
+def local_amount(n, country):
+    return f"{n:,.0f}" if country["currency"] in WHOLE else f"{n:,.2f}"
+
+
+def bucket(amount):
+    return "0-199" if amount < 200 else "200-499" if amount < 500 else "500-999" if amount < 1000 else "1000+"
+
+
+def go_link(name, country, amount, rank, path, links, aff):
+    """An "Ir a…" link that Umami counts as outbound_service_click, like the buttons on the comparison."""
+    if name not in links:
+        return ""
+    props = {"service": name, "destination_country": country["code"], "amount_bucket": bucket(amount),
+             "page_path": path, "affiliate": "true" if name in aff else "false", "location": "guide"}
+    if rank:
+        props["rank"] = str(rank)
+    attrs = "".join(f' data-umami-event-{k}="{esc(v)}"' for k, v in props.items())
+    return (f'<a href="{esc(links[name])}" target="_blank" rel="noopener sponsored" data-umami-event="outbound_service_click"'
+            f'{attrs}>Ir a {esc(name.replace(" (US)", ""))} ↗</a>')
+
+
+def source_note(data, amount, where, old):
+    note = (f"Estimaciones para un envío de ${amount:,} desde Estados Unidos{where}, con datos de comparación de Wise "
+            f"consultados el {fecha(data['collected'])}. Cuando aplica, se paga con transferencia bancaria y se recibe en cuenta "
+            "bancaria. Los montos pueden cambiar: confirma con el servicio antes de enviar.")
+    if old:
+        note += " * Este servicio no ha actualizado su precio en más de un día."
+    return f'<p class="src">{note} <a href="https://wise.com/us/compare/disclaimer" target="_blank" rel="noopener">Aviso de Wise ↗</a></p>'
+
+
+def guide_table(data, code, amount, path, links, aff):
+    c = next((x for x in data["countries"] if x["code"] == code), None)
+    rows = ranked(c, amount) if c else []
+    if not rows:
+        return "<p>Por ahora no tenemos datos para este país.</p>"
+    now, old_any, body = parse_time(data["collected"]), False, ""
+    for i, r in enumerate(rows, 1):
+        at = parse_time(r["at"])
+        old = bool(at and (now - at).total_seconds() >= 86400)
+        old_any |= old
+        if c["currency"] == "USD":
+            fx = "—"
+        elif r["fx"] < -0.005:
+            fx = f"a tu favor ${-r['fx']:,.2f}"
+        else:
+            fx = f"${max(0, r['fx']):,.2f}"
+        name = (esc(r["name"]) + (" *" if old else "") + (' <small>(solo clientes)</small>' if r["name"] in BANKS else "")
+                + (' <small>(promoción de primer envío)</small>' if r["markup"] < -0.1 else ""))
+        body += (f'<tr{" class=top" if i == 1 else ""}><td class="num">{i}</td><td>{name}</td>'
+                 f'<td class="num"><b>{local_amount(r["received"], c)}</b></td><td class="num">${r["fee"]:,.2f}</td>'
+                 f'<td class="num">{fx}</td><td>{go_link(r["name"], c, amount, i, path, links, aff)}</td></tr>')
+    head = (f'<caption>Si mandas ${amount:,} a {esc(c["name"])}, tu familia recibe ({esc(c["currencyName"])})</caption>'
+            '<thead><tr><th class="num">#</th><th>Servicio</th><th class="num">Recibe</th><th class="num">Comisión</th>'
+            '<th class="num">Costo en el cambio</th><th></th></tr></thead>')
+    return (f'<div class="table-wrap"><table class="guide-table">{head}<tbody>{body}</tbody></table></div>'
+            + source_note(data, amount, " a " + c["name"], old_any))
+
+
+def guide_vs(data, a, b, amount, path, links, aff):
+    body = ""
+    for c in data["countries"]:
+        r = {x["name"]: x for x in ranked(c, amount)}
+        if a not in r or b not in r:
+            continue
+        win = a if r[a]["received"] > r[b]["received"] else b if r[b]["received"] > r[a]["received"] else "Empate"
+        body += (f'<tr><td>{esc(c["name"])}</td><td><b>{esc(win)}</b></td><td class="num">{local_amount(r[a]["received"], c)}</td>'
+                 f'<td class="num">{local_amount(r[b]["received"], c)}</td><td>{esc(c["currencyName"])}</td></tr>')
+    if not body:
+        return "<p>Por ahora no tenemos datos de los dos servicios a la vez.</p>"
+    head = (f'<caption>Si mandas ${amount:,}, tu familia recibe</caption><thead><tr><th>País</th><th>Entrega más</th><th class="num">{esc(a)}</th>'
+            f'<th class="num">{esc(b)}</th><th>Moneda</th></tr></thead>')
+    return (f'<div class="table-wrap"><table class="guide-table">{head}<tbody>{body}</tbody></table></div>'
+            + source_note(data, amount, "", False))
+
+
+def build_guide(page, data, slug, base, nav, links, aff):
+    title, desc, content = read_doc("guides", slug)
+    path = f"/guias/{slug}/"
+    content = re.sub(r"<!--TABLE:(\w+):(\d+)-->", lambda m: guide_table(data, m[1], int(m[2]), path, links, aff), content)
+    content = re.sub(r"<!--VS:([^|]+)\|([^:]+):(\d+)-->", lambda m: guide_vs(data, m[1], m[2], int(m[3]), path, links, aff), content)
+
+    def top(m):
+        c = next((x for x in data["countries"] if x["code"] == m[1]), None)
+        rows = ranked(c, int(m[2])) if c else []
+        return esc(rows[0]["name"]) if rows else "—"
+    content = re.sub(r"<!--TOP:(\w+):(\d+)-->", top, content)
+    content = content.replace("<!--DATE-->", fecha(data["collected"]))
+    h1 = re.search(r"<h1>(.*?)</h1>", content, re.S).group(1)
+    ld = {"@context": "https://schema.org", "@type": "Article", "headline": html_mod.unescape(re.sub(r"<.*?>", "", h1)),
+          "description": desc, "inLanguage": "es", "dateModified": data["collected"],
+          "author": {"@type": "Organization", "name": "Manda Más"}, "publisher": {"@type": "Organization", "name": "Manda Más"}}
+    return doc_page(page, content, title, desc, f"guias/{slug}/", base, nav, ld)
+
+
+def build_guides_index(page, base, nav):
+    items = ""
+    for slug in GUIDES:
+        title, desc, content = read_doc("guides", slug)
+        h1 = re.search(r"<h1>(.*?)</h1>", content, re.S).group(1)
+        items += f'<li><a href="/guias/{slug}/">{h1}</a><p>{esc(desc)}</p></li>'
+    content = ('<p class="eyebrow">Guías</p><h1>Guías para mandar dinero</h1>'
+               '<p class="lead">Respuestas cortas y en español a las preguntas más comunes al mandar dinero desde Estados Unidos.</p>'
+               f'<ul class="guide-list">{items}</ul>')
+    return doc_page(page, content, "Guías para mandar dinero desde Estados Unidos | Manda Más",
+                    "Guías en español para mandar dinero a México y Latinoamérica: cuál servicio conviene, comisiones, tipo de cambio y qué necesitas.",
+                    "guias/", base, nav)
 
 
 def write_site(page, data, site_dir, base):
@@ -241,11 +407,22 @@ def write_site(page, data, site_dir, base):
         os.makedirs(os.path.join(site_dir, slug), exist_ok=True)
         with open(os.path.join(site_dir, slug, "index.html"), "w", encoding="utf-8") as f:
             f.write(build_info_page(page, slug, base, nav))
+    links, aff = page_links(page)
+    os.makedirs(os.path.join(site_dir, "guias"), exist_ok=True)
+    with open(os.path.join(site_dir, "guias", "index.html"), "w", encoding="utf-8") as f:
+        f.write(build_guides_index(page, base, nav))
+    for slug in GUIDES:
+        os.makedirs(os.path.join(site_dir, "guias", slug), exist_ok=True)
+        with open(os.path.join(site_dir, "guias", slug, "index.html"), "w", encoding="utf-8") as f:
+            f.write(build_guide(page, data, slug, base, nav, links, aff))
     if base:
         day = data["collected"][:10]
         urls = "".join(f"<url><loc>{base}{'' if not c else SLUGS[c['code']] + '/'}</loc><lastmod>{day}</lastmod>"
                        f"<changefreq>hourly</changefreq></url>" for c in pages)
         urls += "".join(f"<url><loc>{base}{slug}/</loc><changefreq>monthly</changefreq></url>" for slug in INFO_PAGES)
+        urls += f"<url><loc>{base}guias/</loc><changefreq>weekly</changefreq></url>"
+        urls += "".join(f"<url><loc>{base}guias/{slug}/</loc><lastmod>{day}</lastmod><changefreq>daily</changefreq></url>"
+                        for slug in GUIDES)
         with open(os.path.join(site_dir, "sitemap.xml"), "w", encoding="utf-8") as f:
             f.write('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + urls + "</urlset>")
         with open(os.path.join(site_dir, "robots.txt"), "w", encoding="utf-8") as f:

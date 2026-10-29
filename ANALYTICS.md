@@ -47,6 +47,10 @@ updates, or added later, are covered automatically. It never cancels or delays t
 | `affiliate` | `true` / `false` |
 | `location` | `results` (also `best_option`, `crypto` for future buttons) |
 
+Guide pages (`/guias/…`) don't load the comparison script. Their "Ir a…" links send the same event through
+Umami's `data-umami-event` attributes, with `location` set to `guide`. Umami sends those property values as text,
+so `affiliate` and `rank` arrive as `"true"`/`"false"` and `"1"` rather than a boolean and a number.
+
 To track a new outbound link, give it `data-service="<name>"`, `data-location="<where>"`, and
 `data-rank="<n>"` if it has a ranking position.
 

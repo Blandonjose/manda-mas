@@ -231,6 +231,24 @@ a { color: var(--navy-2); }
 .doc .lead { font-size: 1.15rem; }
 .doc .updated { color: var(--muted); font-size: 0.9rem; }
 .doc ul { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; }
+/* Guides */
+.doc .src { color: var(--muted); font-size: 0.88rem; }
+.doc .cta { justify-self: start; background: var(--btn); color: var(--on-navy); padding: 12px 18px; border-radius: 12px; font-weight: 700; text-decoration: none; }
+.doc .cta:hover { filter: brightness(1.1); }
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.guide-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.guide-table caption { text-align: left; padding: 14px 14px 4px; font-weight: 700; }
+.guide-table th, .guide-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.guide-table th { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.guide-table tbody tr:last-child td { border-bottom: 0; }
+.guide-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.guide-table tr.top td { background: var(--accent-soft); }
+.guide-table small { color: var(--muted); }
+.guide-table a { font-weight: 700; }
+.doc ul.guide-list { list-style: none; padding: 0; gap: 12px; }
+.guide-list li { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.guide-list a { font-family: var(--display); font-weight: 800; font-size: 1.15rem; text-decoration: none; }
+.guide-list p { margin: 4px 0 0; color: var(--muted); }
 .doc .mail { font-family: var(--display); font-weight: 800; font-size: clamp(1.3rem, 5vw, 1.9rem); overflow-wrap: anywhere; }
 
 @media (max-width: 860px) {
@@ -260,7 +278,7 @@ a { color: var(--navy-2); }
     <div class="inner">
       <nav class="nav" aria-label="Principal">
         <a class="logo" href="#top" id="top"><span class="logo-mark" aria-hidden="true">$</span><span>Manda <span class="mas">Más</span></span></a>
-        <div class="nav-links"><a href="#opciones">Comparar</a><a href="#como-funciona">Cómo funciona</a><a href="#preguntas">Preguntas</a></div>
+        <div class="nav-links"><a href="#opciones">Comparar</a><a href="#como-funciona">Cómo funciona</a><a href="/guias/">Guías</a><a href="#preguntas">Preguntas</a></div>
       </nav>
       <div class="hero-grid">
         <div class="hero-copy">
@@ -382,7 +400,7 @@ a { color: var(--navy-2); }
       <a class="logo" href="#top"><span class="logo-mark" aria-hidden="true">$</span><span>Manda <span class="mas">Más</span></span></a>
       <!--COUNTRY_LINKS-->
       <p id="stamp"></p>
-      <p class="foot-links"><a href="/quienes-somos/">Quiénes somos</a><a href="/privacidad/">Privacidad</a><a href="/contacto/">Contacto</a><a href="mailto:hola@mandamasdinero.com">hola@mandamasdinero.com</a></p>
+      <p class="foot-links"><a href="/guias/">Guías</a><a href="/quienes-somos/">Quiénes somos</a><a href="/privacidad/">Privacidad</a><a href="/contacto/">Contacto</a><a href="mailto:hola@mandamasdinero.com">hola@mandamasdinero.com</a></p>
       <p>Manda Más no mueve tu dinero. Comparamos estimaciones públicas de cada servicio para envíos desde Estados Unidos. Confirma el precio y el plazo final en la app del servicio antes de enviar.</p>
       <p>Algunos botones "Ir a…" pueden ser enlaces de afiliado: si mandas dinero desde ellos, Manda Más puede recibir una comisión sin costo para ti. Eso nunca cambia el orden de la lista, que siempre va de más a menos dinero recibido.</p>
       <p>Datos de comparación: Wise. Los importes y plazos son estimados y pueden cambiar. Confirma las condiciones finales con el proveedor antes de enviar. <a href="https://wise.com/us/compare/disclaimer" target="_blank" rel="noopener">Aviso de comparación de Wise ↗</a>. Datos de dólares digitales: Bitso. Fotos de Unsplash: <a href="https://unsplash.com/@jackhammer">@jackhammer</a>, <a href="https://unsplash.com/@ghenmar">@ghenmar</a> y <a href="https://unsplash.com/@josuemichelphotography">@josuemichelphotography</a>.</p>
