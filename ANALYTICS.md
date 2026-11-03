@@ -51,6 +51,19 @@ Guide pages (`/guias/…`) don't load the comparison script. Their "Ir a…" lin
 Umami's `data-umami-event` attributes, with `location` set to `guide`. Umami sends those property values as text,
 so `affiliate` and `rank` arrive as `"true"`/`"false"` and `"1"` rather than a boolean and a number.
 
+### `howto_open`
+
+Sent when someone taps "Ir a…" for a service that has a step-by-step guide (`HOWTO` in `index.html`) and then
+chooses "Sí, ver las instrucciones" in the prompt that appears. The tap that opens the prompt is not counted as an
+outbound click; choosing "No, ir directo a…" sends `outbound_service_click` with `location` set to `howto_prompt`
+and stops the prompt for that service on that device.
+
+| Property | Example |
+|---|---|
+| `service` | `Wise` |
+| `destination_country` | `MX` |
+| `page_path` | `/` |
+
 To track a new outbound link, give it `data-service="<name>"`, `data-location="<where>"`, and
 `data-rank="<n>"` if it has a ranking position.
 

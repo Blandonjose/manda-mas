@@ -197,7 +197,7 @@ def head_meta(title, desc, url, base):
 
 INFO_PAGES = ["quienes-somos", "privacidad", "contacto"]  # pages/<slug>.html, built at /<slug>/
 # guides/<slug>.html, built at /guias/<slug>/ and listed on /guias/ in this order
-GUIDES = ["forma-mas-barata-mandar-dinero-a-mexico", "remitly-vs-western-union", "envios-sin-comision",
+GUIDES = ["como-mandar-dinero-con-wise", "como-mandar-dinero-con-instarem", "forma-mas-barata-mandar-dinero-a-mexico", "remitly-vs-western-union", "envios-sin-comision",
           "tipo-de-cambio", "promociones-primer-envio", "que-necesito-para-mandar-dinero"]
 NAV_LINKS = ('<div class="nav-links"><a href="/#opciones">Comparar</a><a href="/#como-funciona">Cómo funciona</a>'
              '<a href="/guias/">Guías</a><a href="/#preguntas">Preguntas</a></div>')
@@ -244,6 +244,8 @@ def doc_page(page, content, title, desc, path, base, nav, ld=None):
 #   <!--VS:Remitly|Western Union:300-->  those two services side by side in every country
 #   <!--TOP:MX:300-->                name of the service that delivers the most
 #   <!--DATE-->                      day the data was collected
+#   <!--GO:Wise-->                   big "Ir a Wise" button with the same (referral) link as the comparison
+#   <!--SHARE-->                     "send this guide by WhatsApp" button
 MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
           "noviembre", "diciembre"]
 WHOLE = {"MXN", "DOP", "COP", "CRC", "CLP", "UYU"}   # same as WHOLE in index.html
@@ -287,16 +289,18 @@ def bucket(amount):
     return "0-199" if amount < 200 else "200-499" if amount < 500 else "500-999" if amount < 1000 else "1000+"
 
 
-def go_link(name, country, amount, rank, path, links, aff):
+def go_link(name, country, amount, rank, path, links, aff, cls=None):
     """An "Ir a…" link that Umami counts as outbound_service_click, like the buttons on the comparison."""
     if name not in links:
         return ""
-    props = {"service": name, "destination_country": country["code"], "amount_bucket": bucket(amount),
-             "page_path": path, "affiliate": "true" if name in aff else "false", "location": "guide"}
+    props = {"service": name, "page_path": path, "affiliate": "true" if name in aff else "false", "location": "guide"}
+    if country:
+        props.update(destination_country=country["code"], amount_bucket=bucket(amount))
     if rank:
         props["rank"] = str(rank)
     attrs = "".join(f' data-umami-event-{k}="{esc(v)}"' for k, v in props.items())
-    return (f'<a href="{esc(links[name])}" target="_blank" rel="noopener sponsored" data-umami-event="outbound_service_click"'
+    klass = f' class="{cls}"' if cls else ""
+    return (f'<a{klass} href="{esc(links[name])}" target="_blank" rel="noopener sponsored" data-umami-event="outbound_service_click"'
             f'{attrs}>Ir a {esc(name.replace(" (US)", ""))} ↗</a>')
 
 
@@ -366,7 +370,12 @@ def build_guide(page, data, slug, base, nav, links, aff):
         return esc(rows[0]["name"]) if rows else "—"
     content = re.sub(r"<!--TOP:(\w+):(\d+)-->", top, content)
     content = content.replace("<!--DATE-->", fecha(data["collected"]))
+    content = re.sub(r"<!--GO:([^>]+?)-->", lambda m: f'<p>{go_link(m[1], None, 0, None, path, links, aff, "cta")}</p>', content)
     h1 = re.search(r"<h1>(.*?)</h1>", content, re.S).group(1)
+    page_url = (base or "https://mandamasdinero.com/") + path.lstrip("/")
+    share = urllib.parse.quote(html_mod.unescape(re.sub(r"<.*?>", "", h1)) + " " + page_url)
+    content = content.replace("<!--SHARE-->", f'<p><a class="share-wa" href="https://wa.me/?text={share}" target="_blank" rel="noopener">'
+                                              'Mándale esta guía a un familiar por WhatsApp</a></p>')
     ld = {"@context": "https://schema.org", "@type": "Article", "headline": html_mod.unescape(re.sub(r"<.*?>", "", h1)),
           "description": desc, "inLanguage": "es", "dateModified": data["collected"],
           "author": {"@type": "Organization", "name": "Manda Más"}, "publisher": {"@type": "Organization", "name": "Manda Más"}}
