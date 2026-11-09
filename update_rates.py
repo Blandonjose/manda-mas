@@ -197,7 +197,8 @@ def head_meta(title, desc, url, base):
 
 INFO_PAGES = ["quienes-somos", "privacidad", "contacto"]  # pages/<slug>.html, built at /<slug>/
 # guides/<slug>.html, built at /guias/<slug>/ and listed on /guias/ in this order
-GUIDES = ["xoom-vs-wise-mexico", "como-mandar-dinero-con-wise", "como-mandar-dinero-con-instarem", "forma-mas-barata-mandar-dinero-a-mexico", "remitly-vs-western-union", "envios-sin-comision",
+GUIDES = ["xoom-vs-wise-mexico", "como-mandar-dinero-con-wise", "como-mandar-dinero-con-instarem", "forma-mas-barata-mandar-dinero-a-mexico", "mandar-dinero-a-guatemala", "mandar-dinero-a-honduras",
+          "mandar-dinero-a-republica-dominicana", "remitly-vs-wise", "remitly-vs-western-union", "envios-sin-comision",
           "tipo-de-cambio", "promociones-primer-envio", "que-necesito-para-mandar-dinero"]
 NAV_LINKS = ('<div class="nav-links"><a href="/#opciones">Comparar</a><a href="/#como-funciona">Cómo funciona</a>'
              '<a href="/guias/">Guías</a><a href="/#preguntas">Preguntas</a></div>')
