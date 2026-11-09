@@ -85,3 +85,7 @@ Open `http://localhost:8000/?analytics_debug=1`. Each event is printed in the br
 4. `quote_view` and `outbound_service_click` appear under **Events**. Click an event to see its properties.
 
 You can also open `https://mandamasdinero.com/?analytics_debug=1` to see in the console exactly what is sent.
+
+## `whatsapp_follow`
+
+Sent (via `data-umami-event` attributes) when someone taps a link to the Manda Más WhatsApp Channel. `location` is `results` (banner under the comparison), `guide`, or `footer`.

@@ -200,6 +200,7 @@ INFO_PAGES = ["quienes-somos", "privacidad", "contacto"]  # pages/<slug>.html, b
 GUIDES = ["xoom-vs-wise-mexico", "como-mandar-dinero-con-wise", "como-mandar-dinero-con-instarem", "forma-mas-barata-mandar-dinero-a-mexico", "mandar-dinero-a-guatemala", "mandar-dinero-a-honduras",
           "mandar-dinero-a-republica-dominicana", "remitly-vs-wise", "remitly-vs-western-union", "envios-sin-comision",
           "tipo-de-cambio", "promociones-primer-envio", "que-necesito-para-mandar-dinero"]
+WHATSAPP_CHANNEL = "https://whatsapp.com/channel/0029VbEb41M9mrGinB1b3K2y"  # also linked in index.html (results banner and footer)
 NAV_LINKS = ('<div class="nav-links"><a href="/#opciones">Comparar</a><a href="/#como-funciona">Cómo funciona</a>'
              '<a href="/guias/">Guías</a><a href="/#preguntas">Preguntas</a></div>')
 
@@ -376,7 +377,9 @@ def build_guide(page, data, slug, base, nav, links, aff):
     page_url = (base or "https://mandamasdinero.com/") + path.lstrip("/")
     share = urllib.parse.quote(html_mod.unescape(re.sub(r"<.*?>", "", h1)) + " " + page_url)
     content = content.replace("<!--SHARE-->", f'<p><a class="share-wa" href="https://wa.me/?text={share}" target="_blank" rel="noopener">'
-                                              'Mándale esta guía a un familiar por WhatsApp</a></p>')
+                                              'Mándale esta guía a un familiar por WhatsApp</a></p>'
+                                              f'<p>¿Quieres saber cada semana qué app entrega más? <a href="{WHATSAPP_CHANNEL}" target="_blank" rel="noopener" '
+                                              'data-umami-event="whatsapp_follow" data-umami-event-location="guide">Sigue nuestro canal de WhatsApp</a>. Es gratis.</p>')
     ld = {"@context": "https://schema.org", "@type": "Article", "headline": html_mod.unescape(re.sub(r"<.*?>", "", h1)),
           "description": desc, "inLanguage": "es", "dateModified": data["collected"],
           "author": {"@type": "Organization", "name": "Manda Más"}, "publisher": {"@type": "Organization", "name": "Manda Más"}}
