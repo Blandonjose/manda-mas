@@ -198,7 +198,8 @@ def head_meta(title, desc, url, base):
 INFO_PAGES = ["quienes-somos", "privacidad", "contacto"]  # pages/<slug>.html, built at /<slug>/
 # guides/<slug>.html, built at /guias/<slug>/ and listed on /guias/ in this order
 GUIDES = ["xoom-vs-wise-mexico", "como-mandar-dinero-con-wise", "como-mandar-dinero-con-instarem", "forma-mas-barata-mandar-dinero-a-mexico", "mandar-dinero-a-guatemala", "mandar-dinero-a-honduras",
-          "mandar-dinero-a-republica-dominicana", "mandar-dinero-a-colombia", "mandar-dinero-a-el-salvador", "mandar-dinero-a-peru",
+          "mandar-dinero-a-republica-dominicana", "mandar-dinero-a-colombia", "mandar-dinero-a-el-salvador", "mandar-dinero-a-peru", "mandar-dinero-a-bolivia",
+          "cuanto-dinero-se-puede-enviar-a-mexico",
           "remitly-vs-wise", "remitly-vs-western-union", "envios-sin-comision",
           "tipo-de-cambio", "promociones-primer-envio", "que-necesito-para-mandar-dinero"]
 WHATSAPP_CHANNEL = "https://whatsapp.com/channel/0029VbEb41M9mrGinB1b3K2y"  # also linked in index.html (results banner and footer)
