@@ -199,7 +199,7 @@ INFO_PAGES = ["quienes-somos", "privacidad", "contacto"]  # pages/<slug>.html, b
 # guides/<slug>.html, built at /guias/<slug>/ and listed on /guias/ in this order
 GUIDES = ["xoom-vs-wise-mexico", "como-mandar-dinero-con-wise", "como-mandar-dinero-con-instarem", "forma-mas-barata-mandar-dinero-a-mexico", "mandar-dinero-a-guatemala", "mandar-dinero-a-honduras",
           "mandar-dinero-a-republica-dominicana", "mandar-dinero-a-colombia", "mandar-dinero-a-el-salvador", "mandar-dinero-a-peru", "mandar-dinero-a-bolivia",
-          "cuanto-dinero-se-puede-enviar-a-mexico",
+          "cuanto-dinero-se-puede-enviar-a-mexico", "mandar-dinero-a-uruguay", "alternativas-a-western-union",
           "remitly-vs-wise", "remitly-vs-western-union", "envios-sin-comision",
           "which-is-better-remitly-or-western-union", "remitly-vs-wise-which-is-better",
           "tipo-de-cambio", "promociones-primer-envio", "que-necesito-para-mandar-dinero"]
@@ -247,6 +247,7 @@ def doc_page(page, content, title, desc, path, base, nav, ld=None, lang="es"):
 # current as the comparison itself. Placeholders a guide can use:
 #   <!--TABLE:MX:300-->              every service for that country and amount (amount must be in BRACKETS)
 #   <!--VS:Remitly|Western Union:300-->  those two services side by side in every country
+#   <!--BEATS:Western Union:300-->  per country: that service against the best other one (no banks, no first-transfer promos)
 #   <!--TOP:MX:300-->                name of the service that delivers the most
 #   <!--DATE-->                      day the data was collected
 #   <!--GO:Wise-->                   big "Ir a Wise" button with the same (referral) link as the comparison
@@ -379,6 +380,31 @@ def guide_vs(data, a, b, amount, path, links, aff, en=False):
             + source_note(data, amount, "", False))
 
 
+def guide_beats(data, name, amount):
+    body = ""
+    for c in data["countries"]:
+        rows = [r for r in ranked(c, amount) if r["name"] not in BANKS and (r["markup"] >= -0.1 or r["name"] == name)]
+        mine = next((r for r in rows if r["name"] == name), None)
+        others = [r for r in rows if r["name"] != name]
+        if not mine or not others:
+            continue
+        best = others[0]
+        diff = best["received"] - mine["received"]
+        if diff > 0:
+            cells = (f'<td><b>{esc(best["name"])}</b></td><td class="num">{local_amount(best["received"], c)}</td>'
+                     f'<td class="num"><b>+{local_amount(diff, c)}</b></td>')
+        else:
+            cells = f'<td colspan="3">{esc(name)} es la que más entrega hoy</td>'
+        body += (f'<tr><td><a href="/{SLUGS[c["code"]]}/">{esc(c["name"])}</a></td><td class="num">{local_amount(mine["received"], c)}</td>'
+                 f'{cells}<td>{esc(c["currencyName"])}</td></tr>')
+    if not body:
+        return "<p>Por ahora no tenemos datos para esta comparación.</p>"
+    head = (f'<caption>Si mandas ${amount:,}, tu familia recibe</caption><thead><tr><th>País</th><th class="num">{esc(name)}</th>'
+            '<th>La que más entrega</th><th class="num">Recibe</th><th class="num">Diferencia</th><th>Moneda</th></tr></thead>')
+    return (f'<div class="table-wrap"><table class="guide-table">{head}<tbody>{body}</tbody></table></div>'
+            + source_note(data, amount, "", False))
+
+
 def build_guide(page, data, slug, base, nav, links, aff):
     title, desc, content = read_doc("guides", slug)
     en = "<!--lang: en-->" in content
@@ -386,6 +412,8 @@ def build_guide(page, data, slug, base, nav, links, aff):
     path = f"/guias/{slug}/"
     content = re.sub(r"<!--TABLE:(\w+):(\d+)-->", lambda m: guide_table(data, m[1], int(m[2]), path, links, aff), content)
     content = re.sub(r"<!--VS:([^|]+)\|([^:]+):(\d+)-->", lambda m: guide_vs(data, m[1], m[2], int(m[3]), path, links, aff, en), content)
+
+    content = re.sub(r"<!--BEATS:([^:]+):(\d+)-->", lambda m: guide_beats(data, m[1], int(m[2])), content)
 
     def top(m):
         c = next((x for x in data["countries"] if x["code"] == m[1]), None)
