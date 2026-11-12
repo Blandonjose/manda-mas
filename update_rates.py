@@ -201,6 +201,7 @@ GUIDES = ["xoom-vs-wise-mexico", "como-mandar-dinero-con-wise", "como-mandar-din
           "mandar-dinero-a-republica-dominicana", "mandar-dinero-a-colombia", "mandar-dinero-a-el-salvador", "mandar-dinero-a-peru", "mandar-dinero-a-bolivia",
           "cuanto-dinero-se-puede-enviar-a-mexico",
           "remitly-vs-wise", "remitly-vs-western-union", "envios-sin-comision",
+          "which-is-better-remitly-or-western-union", "remitly-vs-wise-which-is-better",
           "tipo-de-cambio", "promociones-primer-envio", "que-necesito-para-mandar-dinero"]
 WHATSAPP_CHANNEL = "https://whatsapp.com/channel/0029VbEb41M9mrGinB1b3K2y"  # also linked in index.html (results banner and footer)
 NAV_LINKS = ('<div class="nav-links"><a href="/#opciones">Comparar</a><a href="/#como-funciona">Cómo funciona</a>'
@@ -222,7 +223,7 @@ def build_info_page(page, slug, base, nav):
     return doc_page(page, content, title, desc, slug + "/", base, nav)
 
 
-def doc_page(page, content, title, desc, path, base, nav, ld=None):
+def doc_page(page, content, title, desc, path, base, nav, ld=None, lang="es"):
     head_end = page.index('<div class="wrap">')
     head = page[:head_end]
     head = re.sub(r"<title>.*?</title>\s*", "", head, flags=re.S)
@@ -239,7 +240,7 @@ def doc_page(page, content, title, desc, path, base, nav, ld=None):
         if url:
             ld["url"] = url
         meta.append('<script type="application/ld+json">' + json.dumps(ld, ensure_ascii=False).replace("</", "<\\/") + "</script>")
-    return '<!doctype html><html lang="es"><head>' + "".join(meta) + RESET + head + "</head><body>" + body + "</body></html>"
+    return f'<!doctype html><html lang="{lang}"><head>' + "".join(meta) + RESET + head + "</head><body>" + body + "</body></html>"
 
 
 # Guides: Spanish articles with tables built from the hourly data, so every number on them is as
@@ -250,8 +251,13 @@ def doc_page(page, content, title, desc, path, base, nav, ld=None):
 #   <!--DATE-->                      day the data was collected
 #   <!--GO:Wise-->                   big "Ir a Wise" button with the same (referral) link as the comparison
 #   <!--SHARE-->                     "send this guide by WhatsApp" button
+# A guide that starts with <!--lang: en--> is in English: its date, VS table, source note and share button come out in English.
 MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
           "noviembre", "diciembre"]
+MONTHS_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+             "November", "December"]
+COUNTRY_EN = {"México": "Mexico", "República Dominicana": "Dominican Republic", "Perú": "Peru", "Brasil": "Brazil",
+              "Panamá": "Panama", "Haití": "Haiti"}  # only names that differ in English
 WHOLE = {"MXN", "DOP", "COP", "CRC", "CLP", "UYU"}   # same as WHOLE in index.html
 BANKS = {"Chase (US)", "Wells Fargo"}                 # same as BANKS in index.html
 
@@ -260,9 +266,9 @@ def parse_time(iso):
     return datetime.fromisoformat(iso.replace("Z", "+00:00")) if iso else None
 
 
-def fecha(iso):
+def fecha(iso, en=False):
     d = parse_time(iso)
-    return f"{d.day} de {MONTHS[d.month - 1]} de {d.year}"
+    return f"{MONTHS_EN[d.month - 1]} {d.day}, {d.year}" if en else f"{d.day} de {MONTHS[d.month - 1]} de {d.year}"
 
 
 def page_links(page):
@@ -308,7 +314,12 @@ def go_link(name, country, amount, rank, path, links, aff, cls=None):
             f'{attrs}>Ir a {esc(name.replace(" (US)", ""))} ↗</a>')
 
 
-def source_note(data, amount, where, old):
+def source_note(data, amount, where, old, en=False):
+    if en:
+        return (f'<p class="src">Estimates for sending ${amount:,} from the United States, using Wise comparison data collected on '
+                f'{fecha(data["collected"], True)}. Where it applies, the transfer is paid by bank transfer and received in a bank account. '
+                'Amounts can change: confirm with the service before you send. '
+                '<a href="https://wise.com/us/compare/disclaimer" target="_blank" rel="noopener">Wise disclaimer ↗</a></p>')
     note = (f"Estimaciones para un envío de ${amount:,} desde Estados Unidos{where}, con datos de comparación de Wise "
             f"consultados el {fecha(data['collected'])}. Cuando aplica, se paga con transferencia bancaria y se recibe en cuenta "
             "bancaria. Los montos pueden cambiar: confirma con el servicio antes de enviar.")
@@ -345,17 +356,23 @@ def guide_table(data, code, amount, path, links, aff):
             + source_note(data, amount, " a " + c["name"], old_any))
 
 
-def guide_vs(data, a, b, amount, path, links, aff):
+def guide_vs(data, a, b, amount, path, links, aff, en=False):
     body = ""
     for c in data["countries"]:
         r = {x["name"]: x for x in ranked(c, amount)}
         if a not in r or b not in r:
             continue
-        win = a if r[a]["received"] > r[b]["received"] else b if r[b]["received"] > r[a]["received"] else "Empate"
-        body += (f'<tr><td>{esc(c["name"])}</td><td><b>{esc(win)}</b></td><td class="num">{local_amount(r[a]["received"], c)}</td>'
-                 f'<td class="num">{local_amount(r[b]["received"], c)}</td><td>{esc(c["currencyName"])}</td></tr>')
+        win = a if r[a]["received"] > r[b]["received"] else b if r[b]["received"] > r[a]["received"] else "Tie" if en else "Empate"
+        place, money = (COUNTRY_EN.get(c["name"], c["name"]), c["currency"]) if en else (c["name"], c["currencyName"])
+        body += (f'<tr><td>{esc(place)}</td><td><b>{esc(win)}</b></td><td class="num">{local_amount(r[a]["received"], c)}</td>'
+                 f'<td class="num">{local_amount(r[b]["received"], c)}</td><td>{esc(money)}</td></tr>')
     if not body:
-        return "<p>Por ahora no tenemos datos de los dos servicios a la vez.</p>"
+        return "<p>We don't have data for both services right now.</p>" if en else "<p>Por ahora no tenemos datos de los dos servicios a la vez.</p>"
+    if en:
+        head = (f'<caption>If you send ${amount:,}, your family receives</caption><thead><tr><th>Country</th><th>Delivers more</th>'
+                f'<th class="num">{esc(a)}</th><th class="num">{esc(b)}</th><th>Currency</th></tr></thead>')
+        return (f'<div class="table-wrap"><table class="guide-table">{head}<tbody>{body}</tbody></table></div>'
+                + source_note(data, amount, "", False, True))
     head = (f'<caption>Si mandas ${amount:,}, tu familia recibe</caption><thead><tr><th>País</th><th>Entrega más</th><th class="num">{esc(a)}</th>'
             f'<th class="num">{esc(b)}</th><th>Moneda</th></tr></thead>')
     return (f'<div class="table-wrap"><table class="guide-table">{head}<tbody>{body}</tbody></table></div>'
@@ -364,28 +381,35 @@ def guide_vs(data, a, b, amount, path, links, aff):
 
 def build_guide(page, data, slug, base, nav, links, aff):
     title, desc, content = read_doc("guides", slug)
+    en = "<!--lang: en-->" in content
+    content = content.replace("<!--lang: en-->", "").lstrip()
     path = f"/guias/{slug}/"
     content = re.sub(r"<!--TABLE:(\w+):(\d+)-->", lambda m: guide_table(data, m[1], int(m[2]), path, links, aff), content)
-    content = re.sub(r"<!--VS:([^|]+)\|([^:]+):(\d+)-->", lambda m: guide_vs(data, m[1], m[2], int(m[3]), path, links, aff), content)
+    content = re.sub(r"<!--VS:([^|]+)\|([^:]+):(\d+)-->", lambda m: guide_vs(data, m[1], m[2], int(m[3]), path, links, aff, en), content)
 
     def top(m):
         c = next((x for x in data["countries"] if x["code"] == m[1]), None)
         rows = ranked(c, int(m[2])) if c else []
         return esc(rows[0]["name"]) if rows else "—"
     content = re.sub(r"<!--TOP:(\w+):(\d+)-->", top, content)
-    content = content.replace("<!--DATE-->", fecha(data["collected"]))
+    content = content.replace("<!--DATE-->", fecha(data["collected"], en))
     content = re.sub(r"<!--GO:([^>]+?)-->", lambda m: f'<p>{go_link(m[1], None, 0, None, path, links, aff, "cta")}</p>', content)
+    if en:
+        content = content.replace(">Ir a ", ">Go to ")
     h1 = re.search(r"<h1>(.*?)</h1>", content, re.S).group(1)
     page_url = (base or "https://mandamasdinero.com/") + path.lstrip("/")
     share = urllib.parse.quote(html_mod.unescape(re.sub(r"<.*?>", "", h1)) + " " + page_url)
+    if en:
+        content = content.replace("<!--SHARE-->", f'<p><a class="share-wa" href="https://wa.me/?text={share}" target="_blank" rel="noopener">'
+                                                  'Send this page to a relative on WhatsApp</a></p>')
     content = content.replace("<!--SHARE-->", f'<p><a class="share-wa" href="https://wa.me/?text={share}" target="_blank" rel="noopener">'
                                               'Mándale esta guía a un familiar por WhatsApp</a></p>'
                                               f'<p>¿Quieres saber cada semana qué app entrega más? <a href="{WHATSAPP_CHANNEL}" target="_blank" rel="noopener" '
                                               'data-umami-event="whatsapp_follow" data-umami-event-location="guide">Sigue nuestro canal de WhatsApp</a>. Es gratis.</p>')
     ld = {"@context": "https://schema.org", "@type": "Article", "headline": html_mod.unescape(re.sub(r"<.*?>", "", h1)),
-          "description": desc, "inLanguage": "es", "dateModified": data["collected"],
+          "description": desc, "inLanguage": "en" if en else "es", "dateModified": data["collected"],
           "author": {"@type": "Organization", "name": "Manda Más"}, "publisher": {"@type": "Organization", "name": "Manda Más"}}
-    return doc_page(page, content, title, desc, f"guias/{slug}/", base, nav, ld)
+    return doc_page(page, content, title, desc, f"guias/{slug}/", base, nav, ld, "en" if en else "es")
 
 
 def build_guides_index(page, base, nav):
