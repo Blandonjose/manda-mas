@@ -55,7 +55,7 @@ def country_video(code, name, slug, folder):
     for f in os.listdir(folder):
         if f not in keep:
             os.remove(os.path.join(folder, f))
-    captions(folder, f"¿Mandas $300 a {name}? Cuánto llega con cada app {flag(code)} #shorts", body, re.sub(r"\W", "", slug.lower()))
+    captions(folder, f"Enviar dinero a {name}: cuánto llega con cada app ($300) {flag(code)} #shorts", body  # search words first, re.sub(r"\W", "", slug.lower()))
     return None
 
 
