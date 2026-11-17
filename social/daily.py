@@ -1,16 +1,16 @@
-"""Make today's two social videos (noon and 6 PM) with captions for YouTube, Instagram and Facebook.
+"""Make today's three social videos (noon country, 3 PM tip, 6 PM country) with captions for YouTube, Instagram and Facebook.
 
 usage: python3 social/daily.py [YYYY-MM-DD]
 Writes  ~/Desktop/Manda Más – promociones/videos auto/<date>/
-          1-mediodia/  and  2-tarde/   each with video.mp4, youtube.txt, instagram.txt, facebook.txt
+          1-mediodia/, 2-tarde/, 3-noche/   each with video.mp4, youtube.txt, instagram.txt, facebook.txt
           plan.json    what was made, for which time, and why some countries were skipped
           LÉEME.txt    the same in plain Spanish
 Set MANDAMAS_OUT to write somewhere else. Needs Google Chrome and Swift (both on this Mac).
 
 Country videos use the live prices on mandamasdinero.com, so run it on the day of posting.
 make_reel.py refuses a country when Wise/Instarem don't beat Western Union/Remitly or the gap is
-under 0.5%; daily.py then moves on to the next country in the rotation. Wednesdays and Saturdays
-the noon slot is an evergreen tip instead of a country.
+under 0.5%; daily.py then moves on to the next country in the rotation. The 3 PM slot is an
+evergreen tip; the twelve tips rotate, so each one comes back every twelve days.
 """
 import json, os, re, shutil, subprocess, sys
 from datetime import date
@@ -22,7 +22,17 @@ COUNTRIES = [("MX", "México", "Mexico"), ("HN", "Honduras", "Honduras"), ("GT",
              ("BO", "Bolivia", "Bolivia"), ("DO", "República Dominicana", "Republica-Dominicana"), ("CR", "Costa Rica", "Costa-Rica"),
              ("CO", "Colombia", "Colombia"), ("PE", "Perú", "Peru"), ("CL", "Chile", "Chile"), ("UY", "Uruguay", "Uruguay")]
 TIPS = {"sin-comision-no-es-gratis": "“Sin comisión” NO quiere decir gratis al mandar dinero 👀 #shorts",
-        "3-cosas-antes-de-mandar": "3 cosas que debes revisar antes de mandar dinero 💸 #shorts"}
+        "promo-primer-envio": "La promoción para mandar dinero casi siempre es solo el primer envío 👀 #shorts",
+        "impuesto-1-por-ciento-efectivo": "Impuesto de 1% si pagas tu envío de dinero en efectivo (2026) 💵 #shorts",
+        "3-cosas-antes-de-mandar": "3 cosas que debes revisar antes de mandar dinero 💸 #shorts",
+        "el-tipo-de-cambio-real": "Cómo saber si una app te da buen tipo de cambio 🤔 #shorts",
+        "no-pagues-con-tarjeta-de-credito": "¿Mandar dinero con tarjeta de crédito? Ojo con este cobro 💳 #shorts",
+        "un-envio-o-varios": "Mandar dinero: un envío grande o varios chicos 💸 #shorts",
+        "cuidado-con-estafas": "Cuidado con estas estafas al mandar dinero ⚠️ #shorts",
+        "deposito-o-efectivo": "Mandar dinero: ¿depósito en banco o retiro en efectivo? 🏦 #shorts",
+        "tus-derechos-al-enviar": "Tus derechos al mandar dinero desde Estados Unidos 📄 #shorts",
+        "nombre-exacto": "Para que no se atore tu envío de dinero ⏳ #shorts",
+        "el-precio-cambia-cada-dia": "La app que más entrega cambia cada día 📈 #shorts"}
 TAP = "🔗 Link en el perfil"
 DISC = "Manda Más es gratis. Algunas apps nos pueden pagar una comisión si te registras desde nuestra página, sin costo para ti."
 
@@ -55,7 +65,8 @@ def country_video(code, name, slug, folder):
     for f in os.listdir(folder):
         if f not in keep:
             os.remove(os.path.join(folder, f))
-    captions(folder, f"Enviar dinero a {name}: cuánto llega con cada app ($300) {flag(code)} #shorts", body  # search words first, re.sub(r"\W", "", slug.lower()))
+    # Title starts with the words people search for.
+    captions(folder, f"Enviar dinero a {name}: cuánto llega con cada app ($300) {flag(code)} #shorts", body, re.sub(r"\W", "", slug.lower()))
     return None
 
 
@@ -79,17 +90,17 @@ def main():
         shutil.rmtree(out)
     os.makedirs(out)
     n = day.toordinal()
-    slots = [("1-mediodia", "12:00 pm"), ("2-tarde", "6:00 pm")]
+    slots = [("1-mediodia", "12:00 pm"), ("2-tarde", "3:00 pm"), ("3-noche", "6:00 pm")]
     plan, skipped, made = [], [], set()
-    tip_day = day.weekday() in (2, 5)  # Wednesday, Saturday
+    tips = list(TIPS)
+    tip_today = tips[n % len(tips)]
     for i, (folder_name, time) in enumerate(slots):
         folder = os.path.join(out, folder_name)
-        if i == 0 and tip_day:
-            slug = list(TIPS)[(n // 7 + (day.weekday() == 5)) % len(TIPS)]  # Wednesday and Saturday get different tips
-            tip_video(slug, folder)
-            plan.append({"slot": folder_name, "time": time, "video": "consejo: " + slug})
+        if folder_name == "2-tarde":
+            tip_video(tip_today, folder)
+            plan.append({"slot": folder_name, "time": time, "video": "consejo: " + tip_today})
             continue
-        start = (2 * n + i) % len(COUNTRIES)
+        start = (2 * n + (i > 0)) % len(COUNTRIES)
         for k in range(len(COUNTRIES)):
             code, name, slug = COUNTRIES[(start + k) % len(COUNTRIES)]
             if code in made or any(s["country"] == code for s in skipped):
@@ -102,7 +113,7 @@ def main():
             plan.append({"slot": folder_name, "time": time, "video": name})
             break
         else:
-            tip_video(list(TIPS)[(n + i) % len(TIPS)], folder)
+            tip_video(tips[(n + 1 + i) % len(tips)], folder)  # never the same tip as 2-tarde
             plan.append({"slot": folder_name, "time": time, "video": "consejo (ningún país pasó el filtro)"})
     with open(os.path.join(out, "plan.json"), "w", encoding="utf-8") as f:
         json.dump({"date": day.isoformat(), "posts": plan, "skipped": skipped}, f, ensure_ascii=False, indent=2)
