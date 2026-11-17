@@ -34,6 +34,11 @@ body.post .postfoot{display:flex;justify-content:space-between;align-items:cente
 body.post .postfoot .url{font-size:46px;padding:20px 34px}
 body.post .postfoot .src{margin:0;font-size:24px;max-width:470px}
 .src{font-size:28px;color:#9fb3d6;line-height:1.4;margin-top:30px}
+
+/* Over stock footage (#bg=1): transparent page, text on a dark card so it reads over any video. */
+html.video,body.video{background:transparent}
+body.video{padding:0 80px 440px;display:flex;flex-direction:column;justify-content:flex-end}  /* card sits low, faces stay visible above it */
+body.video .scene,body.video .slide{min-height:0;background:rgba(8,31,69,.84);border-radius:44px;padding:56px 60px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
 </style></head><body>
 <div class="scene" id="s0">
   <div class="flag" id="flag"></div>
@@ -82,6 +87,7 @@ if (DATA.tap) document.querySelector(".tap").textContent = DATA.tap;  // other p
 $("src").textContent = `Estimaciones del ${DATA.date} para envíos desde Estados Unidos. Datos de comparación: Wise. Los precios cambian.`;
 $("src2").textContent = $("src").textContent;
 if (/post=1/.test(location.hash)) document.body.classList.add("post");
+if (/bg=1/.test(location.hash)) { document.documentElement.classList.add("video"); document.body.classList.add("video"); }
 $("s" + scene).classList.add("on");
 </script>
 </body></html>

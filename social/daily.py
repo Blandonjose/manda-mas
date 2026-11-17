@@ -7,6 +7,8 @@ Writes  ~/Desktop/Manda Más – promociones/videos auto/<date>/
           LÉEME.txt    the same in plain Spanish
 Set MANDAMAS_OUT to write somewhere else. Needs Google Chrome and Swift (both on this Mac). Videos are narrated with the Mac's Spanish voice
 (social/voice.py; VOICE=Name to change it, NOVOICE=1 for silent videos).
+With a free Pexels key (social/stock.py) real people from stock footage play behind the numbers;
+without one, the videos keep the plain blue background. NOSTOCK=1 turns the footage off.
 
 Country videos use the live prices on mandamasdinero.com, so run it on the day of posting.
 make_reel.py refuses a country when Wise/Instarem don't beat Western Union/Remitly or the gap is

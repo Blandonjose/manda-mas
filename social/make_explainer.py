@@ -6,7 +6,7 @@ Uses the same Chrome screenshot + encode.swift pipeline as make_reel.py.
 import json, os, subprocess, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import voice
+import stock, voice
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
@@ -309,7 +309,7 @@ def shoot(url, path):
     for _ in range(2):  # headless Chrome occasionally hangs; one retry
         try:
             subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--hide-scrollbars", "--virtual-time-budget=6000",
-                            "--force-device-scale-factor=1", "--window-size=1080,1920", f"--screenshot={path}", url],
+                            "--force-device-scale-factor=1", "--default-background-color=00000000", "--window-size=1080,1920", f"--screenshot={path}", url],
                            check=True, capture_output=True, timeout=90)
             return
         except subprocess.TimeoutExpired:
@@ -336,11 +336,12 @@ for slug, v in VIDEOS.items():
         else:
             said.append(0)
     secs_all, starts = voice.fit([([s], d) for (_, s), d in zip(v["slides"], said)])
+    bg = [] if os.environ.get("NOSTOCK") else stock.clips(len(secs_all))  # real people behind each slide
     manifest = []
     for i, secs in enumerate(secs_all):
         png = os.path.join(out, f"slide{i}.png")
-        shoot(f"file://{html}#n={i}", png)
-        manifest.append(f"{png}\t{secs}")
+        shoot(f"file://{html}#n={i}" + ("&bg=1" if bg else ""), png)
+        manifest.append(f"{png}\t{secs}" + (f"\t{bg[i % len(bg)]}" if bg else ""))
     open(os.path.join(out, "manifest.txt"), "w").write("\n".join(manifest))
     final = os.path.join(out, "video.mp4")
     silent = os.path.join(out, "silent.mp4") if clips else final

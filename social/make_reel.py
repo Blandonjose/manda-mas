@@ -7,7 +7,7 @@ Needs Google Chrome and Swift (both already on this Mac); the encoder is encode.
 import importlib.util, json, os, re, subprocess, sys, unicodedata, urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import voice
+import stock, voice
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -38,7 +38,7 @@ def shoot(url, path, w, h, tries=2):
 
 def _shoot(url, path, w, h):
     subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--hide-scrollbars", "--virtual-time-budget=6000",
-                    "--force-device-scale-factor=1", f"--window-size={w},{h}", f"--screenshot={path}", url],
+                    "--force-device-scale-factor=1", "--default-background-color=00000000", f"--window-size={w},{h}", f"--screenshot={path}", url],
                    check=True, capture_output=True, timeout=90)
 
 
@@ -106,11 +106,18 @@ def main():
             said.append(0)
     secs, starts = voice.fit([([s for _, _, s in g], d) for g, d in zip(groups, said)])
     plan = [(scene, rows, s) for (scene, rows, _), s in zip([f for g in groups for f in g], secs)]
+    group_of = [gi for gi, g in enumerate(groups) for _ in g]
+    # Real people behind the numbers: one stock clip per spoken group, the first one from the country.
+    bg = [] if os.environ.get("NOSTOCK") else stock.clips(len(groups), stock.COUNTRY.get(code, []))
     manifest = []
     for i, (scene, rows, secs) in enumerate(plan):
         png = os.path.join(out, f"frame{i:02d}.png")
-        shoot(f"file://{html}#scene={scene}&rows={rows}", png, 1080, 1920)
-        manifest.append(f"{png}\t{secs}")
+        if bg:
+            shoot(f"file://{html}#scene={scene}&rows={rows}&bg=1", png, 1080, 1920)
+            manifest.append(f"{png}\t{secs}\t{bg[group_of[i] % len(bg)]}")
+        else:
+            shoot(f"file://{html}#scene={scene}&rows={rows}", png, 1080, 1920)
+            manifest.append(f"{png}\t{secs}")
     open(os.path.join(out, "manifest.txt"), "w").write("\n".join(manifest))
     final = os.path.join(out, "reel.mp4")
     silent = os.path.join(out, "silent.mp4") if clips else final

@@ -26,9 +26,15 @@ em{font-style:normal;color:#ff8a1f}
 .url{align-self:flex-start;font-weight:700;font-size:62px;background:#ff8a1f;color:#2a1400;padding:26px 46px;border-radius:999px}
 .ticks{display:grid;gap:18px;font-size:50px;font-weight:700}
 .tap{font-size:50px;font-weight:700;color:#fff;background:rgba(255,255,255,.12);border:3px dashed #ff8a1f;border-radius:24px;padding:22px 30px;align-self:flex-start}
+
+/* Over stock footage (#bg=1): transparent page, text on a dark card so it reads over any video. */
+html.video,body.video{background:transparent}
+body.video{padding:0 80px 440px;display:flex;flex-direction:column;justify-content:flex-end}  /* card sits low, faces stay visible above it */
+body.video .scene,body.video .slide{min-height:0;background:rgba(8,31,69,.84);border-radius:44px;padding:56px 60px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
 </style></head><body><div class="slide" id="slide"></div>
 <script>
 const SLIDES = /*SLIDES*/[];
 const n = +(location.hash.match(/n=(\d+)/) || [0, 0])[1];
 document.getElementById("slide").innerHTML = SLIDES[n].html;
+if (/bg=1/.test(location.hash)) { document.documentElement.classList.add("video"); document.body.classList.add("video"); }
 </script></body></html>
