@@ -14,8 +14,12 @@ PAD = 0.6  # silence after each line before the picture changes
 
 
 def speak(text, path):
-    subprocess.run(["say", "-v", VOICE, "-r", "180", "-o", path, "--file-format=m4af", "--data-format=aac", text],
+    # say -> AIFF, then AAC 48 kHz stereo 128 kbps (what Instagram, Facebook and YouTube recommend)
+    raw = path + ".aiff"
+    subprocess.run(["say", "-v", VOICE, "-r", "180", "-o", raw, text], check=True, capture_output=True)
+    subprocess.run(["afconvert", "-f", "m4af", "-d", "aac@48000", "-b", "128000", "-c", "2", raw, path],
                    check=True, capture_output=True)
+    os.remove(raw)
     info = subprocess.run(["afinfo", path], capture_output=True, text=True).stdout
     return float(re.search(r"estimated duration: ([\d.]+)", info).group(1))
 

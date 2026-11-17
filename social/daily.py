@@ -46,7 +46,7 @@ def flag(code):
 
 def captions(folder, yt_title, body, tag):
     yt = f"TÍTULO:\n{yt_title}\n\nDESCRIPCIÓN:\n{body}\n\nCompara gratis: https://mandamasdinero.com\n\n{DISC}\n\n#remesas #enviardinero #{tag} #shorts\n"
-    ig_tags = f"#remesas #enviardinero #{tag} #latinosenusa #dinero #tipodecambio"
+    ig_tags = f"#remesas #enviardinero #{tag} #latinosenusa #tipodecambio"  # Instagram allows 5 hashtags
     ig = f"{body}\n\n🔗 Compara gratis con el link de nuestro perfil: mandamasdinero.com\n\n{DISC}\n\n{ig_tags}\n"
     fb = f"{body}\n\nCompara gratis 👇\nhttps://mandamasdinero.com\n\n{DISC}\n\n{ig_tags}\n"
     for name, text in (("youtube.txt", yt), ("instagram.txt", ig), ("facebook.txt", fb)):

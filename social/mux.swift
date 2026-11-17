@@ -26,6 +26,7 @@ while i + 1 < a.count {
 let export = AVAssetExportSession(asset: comp, presetName: AVAssetExportPresetPassthrough)!
 export.outputURL = out
 export.outputFileType = .mp4
+export.shouldOptimizeForNetworkUse = true  // moov first ("faststart"), safer for uploads
 let done = DispatchSemaphore(value: 0)
 export.exportAsynchronously { done.signal() }
 done.wait()
