@@ -5,6 +5,10 @@ Needs a free API key from either site, as just the key in a text file:
   ~/Desktop/Manda Más – promociones/pixabay-key.txt   (or env PIXABAY_API_KEY)
   ~/Desktop/Manda Más – promociones/pexels-key.txt    (or env PEXELS_API_KEY)
 Pixabay is tried first. Without either, the videos keep the plain blue background.
+
+Simplest and most reliable: clips saved by hand (normal "Free download" on pixabay.com or pexels.com)
+into  ~/Desktop/Manda Más – promociones/clips/   — general clips at the top, country clips in a
+subfolder named by code (clips/MX/, clips/GT/, ...). These are used before the API.
 Pixabay's API terms: download the files (no hotlinking) and no mass downloading; we fetch a
 handful of clips per batch.
 
@@ -88,8 +92,45 @@ def _pexels(q, k):
 ALLOWED_HOSTS = ("videos.pexels.com", "player.vimeo.com", "cdn.pixabay.com")
 
 
+CLIPS = os.path.join(FOLDER, "clips")
+
+
+def _local(n, topics, fresh, now):
+    """Clips downloaded by hand from pixabay.com / pexels.com into the clips folder.
+    clips/MX/*.mp4 etc. are used for that country's videos; clips/*.mp4 for anything."""
+    code = next((c for c, qs in COUNTRY.items() if topics and list(topics) == qs), None)
+    pools = ([os.path.join(CLIPS, code)] if code else []) + [CLIPS]
+    out = []
+    for d in pools:
+        try:
+            names = [f for f in os.listdir(d) if f.lower().endswith(".mp4")]
+        except OSError:
+            continue
+        random.shuffle(names)
+        for f in names:
+            vid = "local:" + os.path.relpath(os.path.join(d, f), CLIPS)
+            if len(out) >= n:
+                return out
+            if vid not in fresh:
+                fresh[vid] = now
+                out.append(os.path.join(d, f))
+    return out
+
+
 def clips(n, topics=None):
-    site = "pixabay" if key("pixabay") else "pexels" if key("pexels") else None
+    used, now = _used(), time.time()
+    fresh = {vid: ts for vid, ts in used.items() if now - ts < REUSE_DAYS * 86400}
+    out = _local(n, topics, fresh, now)
+    if out:
+        os.makedirs(CACHE, exist_ok=True)
+        json.dump(fresh, open(USED, "w"))
+    if len(out) >= n:
+        return out
+    return out + _api(n - len(out), topics)
+
+
+def _api(n, topics=None):
+    site ="pixabay" if key("pixabay") else "pexels" if key("pexels") else None
     if not site:
         return []
     k = key(site)
