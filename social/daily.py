@@ -85,7 +85,7 @@ def main():
     for i, (folder_name, time) in enumerate(slots):
         folder = os.path.join(out, folder_name)
         if i == 0 and tip_day:
-            slug = list(TIPS)[(n // 7) % len(TIPS)]
+            slug = list(TIPS)[(n // 7 + (day.weekday() == 5)) % len(TIPS)]  # Wednesday and Saturday get different tips
             tip_video(slug, folder)
             plan.append({"slot": folder_name, "time": time, "video": "consejo: " + slug})
             continue
