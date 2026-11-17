@@ -5,6 +5,9 @@ Writes out/<code>-<amount>-<date>/ with reel.mp4, post.png and caption.txt.
 Needs Google Chrome and Swift (both already on this Mac); the encoder is encode.swift.
 """
 import importlib.util, json, os, re, subprocess, sys, unicodedata, urllib.request
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import voice
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -82,15 +85,40 @@ def main():
     with open(os.path.join(HERE, "reel.html")) as f:
         open(html, "w").write(f.read().replace("/*DATA*/null", json.dumps(fill, ensure_ascii=False)))
 
-    # (scene, rows shown, seconds on screen)
-    plan = [(0, 0, 2.6)] + [(1, n, 1.3) for n in range(1, len(shown))] + [(1, len(shown), 2.6), (2, 0, 3.4), (3, 0, 4.4)]
+    # (scene, rows shown, seconds on screen), in four spoken groups: hook, rows, difference, ending
+    groups = [[(0, 0, 2.6)], [(1, n, 1.3) for n in range(1, len(shown))] + [(1, len(shown), 2.6)], [(2, 0, 3.4)], [(3, 0, 4.4)]]
+    best_popular = max(popular, key=lambda r: r["received"])["name"]
+    spoken = lambda n: str(round(n)) if n >= 10 else f"{n:.2f}"
+    lines = [f"¿Mandas {amount} dólares a {country['name']}? Mira cuánto le llega a tu familia con cada app.",
+             " ".join([f"Con {shown[0]['name']} llegan {spoken(shown[0]['received'])} {unit}."]
+                      + [f"Con {r['name']}, {spoken(r['received'])}." for r in shown[1:-1]]
+                      + [f"Y con {shown[-1]['name']}, {spoken(shown[-1]['received'])}."]),
+             f"Son {spoken(diff)} {unit} más que con {best_popular}, solo por elegir otra app."
+             + (f" {top['name']} da todavía más, pero es una promoción, casi siempre solo para el primer envío." if promo else ""),
+             voice.END_LINE + (" El link está en nuestro perfil." if "perfil" in (fill["tap"] or "") else "")]
+    clips, said = [], []
+    for i, line in enumerate(lines):
+        if voice.ENABLED:
+            path = os.path.join(out, f"voz{i}.m4a")
+            said.append(voice.speak(line, path))
+            clips.append(path)
+        else:
+            said.append(0)
+    secs, starts = voice.fit([([s for _, _, s in g], d) for g, d in zip(groups, said)])
+    plan = [(scene, rows, s) for (scene, rows, _), s in zip([f for g in groups for f in g], secs)]
     manifest = []
     for i, (scene, rows, secs) in enumerate(plan):
         png = os.path.join(out, f"frame{i:02d}.png")
         shoot(f"file://{html}#scene={scene}&rows={rows}", png, 1080, 1920)
         manifest.append(f"{png}\t{secs}")
     open(os.path.join(out, "manifest.txt"), "w").write("\n".join(manifest))
-    subprocess.run(["swift", os.path.join(HERE, "encode.swift"), os.path.join(out, "manifest.txt"), os.path.join(out, "reel.mp4")], check=True)
+    final = os.path.join(out, "reel.mp4")
+    silent = os.path.join(out, "silent.mp4") if clips else final
+    subprocess.run(["swift", os.path.join(HERE, "encode.swift"), os.path.join(out, "manifest.txt"), silent], check=True)
+    if clips:
+        voice.mux(silent, list(zip(clips, starts)), final)
+        os.remove(silent)
+    open(os.path.join(out, "narracion.txt"), "w").write("\n".join(lines) + "\n")
 
     # Feed image (4:5): the full list on one picture.
     shoot(f"file://{html}#scene=1&rows=99&post=1", os.path.join(out, "post.png"), 1080, 1350)

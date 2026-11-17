@@ -5,7 +5,8 @@ Writes  ~/Desktop/Manda Más – promociones/videos auto/<date>/
           1-mediodia/, 2-tarde/, 3-noche/   each with video.mp4, youtube.txt, instagram.txt, facebook.txt
           plan.json    what was made, for which time, and why some countries were skipped
           LÉEME.txt    the same in plain Spanish
-Set MANDAMAS_OUT to write somewhere else. Needs Google Chrome and Swift (both on this Mac).
+Set MANDAMAS_OUT to write somewhere else. Needs Google Chrome and Swift (both on this Mac). Videos are narrated with the Mac's Spanish voice
+(social/voice.py; VOICE=Name to change it, NOVOICE=1 for silent videos).
 
 Country videos use the live prices on mandamasdinero.com, so run it on the day of posting.
 make_reel.py refuses a country when Wise/Instarem don't beat Western Union/Remitly or the gap is

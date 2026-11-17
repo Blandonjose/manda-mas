@@ -5,6 +5,9 @@ Uses the same Chrome screenshot + encode.swift pipeline as make_reel.py.
 """
 import json, os, subprocess, sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import voice
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
@@ -225,6 +228,83 @@ VIDEOS = {
 }
 
 
+# What the voice says on each slide (the last slide, the logo, always says voice.END_LINE).
+NARRATION = {
+    "sin-comision-no-es-gratis": [
+        "Ojo antes de mandar dinero. Sin comisión no quiere decir gratis.",
+        "Las apps ganan de dos formas: con la comisión, que sí ves, y con el tipo de cambio, que casi no se ve.",
+        "Un ejemplo con 300 dólares a México. Una app sin comisión te da 18 pesos por dólar, y tu familia recibe 5400. Otra cobra 3 dólares, pero te da 18.45, y tu familia recibe 5480.",
+        "La que cobra comisión entrega 80 pesos más. Lo que importa es cuánto recibe tu familia.",
+    ],
+    "3-cosas-antes-de-mandar": [
+        "Tres cosas que debes revisar antes de mandar dinero, para que a tu familia le llegue más.",
+        "Uno: mira cuánto recibe tu familia, no solo la comisión. El tipo de cambio también cuesta.",
+        "Dos: las promociones casi siempre son solo para el primer envío. El segundo puede salir más caro.",
+        "Tres: lee el resumen final antes de confirmar. Ahí ves el monto exacto que va a recibir tu familia.",
+    ],
+    "promo-primer-envio": [
+        "Ojo con las promociones. El súper precio casi siempre es solo para el primer envío.",
+        "Muchas apps te dan un mejor tipo de cambio para que te registres. Está bien aprovecharlo.",
+        "Pero en el segundo envío vuelve el precio normal, y puede ser peor que el de otras apps.",
+        "Así que antes de cada envío, compara otra vez.",
+    ],
+    "no-pagues-con-tarjeta-de-credito": [
+        "¿Pagas tus envíos con tarjeta de crédito? Ojo.",
+        "Algunos bancos lo cobran como adelanto en efectivo: con una comisión extra, y con intereses desde el primer día.",
+        "Y algunas apps también cobran más si pagas con tarjeta.",
+        "Casi siempre sale más barato pagar desde tu cuenta de banco, o con tarjeta de débito.",
+    ],
+    "impuesto-1-por-ciento-efectivo": [
+        "Desde 2026, si pagas tu envío en efectivo, hay un impuesto federal de uno por ciento.",
+        "Aplica cuando pagas con efectivo, con money order, o con cheque de caja.",
+        "En un envío de 300 dólares, son 3 dólares más, solo de impuesto.",
+        "Si pagas desde tu cuenta de banco o con tarjeta, ese impuesto no se cobra.",
+    ],
+    "el-tipo-de-cambio-real": [
+        "¿Cómo saber si una app te da un buen tipo de cambio?",
+        "Busca en Google: dólar a peso. Ese es el tipo de cambio de referencia.",
+        "Por ejemplo, si la referencia es 18.50, y la app te da 18.10, en 300 dólares tu familia recibe 120 pesos menos.",
+        "Mientras más cerca de la referencia, mejor para tu familia.",
+    ],
+    "un-envio-o-varios": [
+        "¿Mandas dinero varias veces al mes? Las comisiones se suman.",
+        "Por ejemplo, con una comisión de 3.99, tres envíos de 100 dólares cuestan casi 12 dólares en comisiones. Un solo envío de 300 cuesta 3.99.",
+        "Te ahorras unos 8 dólares, con el mismo dinero.",
+        "Si tu familia puede esperar, junta los envíos chicos en uno.",
+    ],
+    "deposito-o-efectivo": [
+        "¿Tu familia recibe en el banco, o retira en efectivo?",
+        "Muchas veces el retiro en efectivo cuesta más: la comisión o el tipo de cambio pueden ser peores.",
+        "Y algunas apps solo depositan en cuenta de banco. Confírmalo antes de elegir.",
+        "Si tu familia tiene cuenta, compara las dos opciones en la app.",
+    ],
+    "nombre-exacto": [
+        "Para que no se atore tu envío, escribe el nombre exacto.",
+        "Tiene que ser igual al de su identificación, con los dos apellidos si los usa.",
+        "Y si es depósito, revisa también el banco y el número de cuenta.",
+        "Un error puede retrasar el dinero varios días.",
+    ],
+    "cuidado-con-estafas": [
+        "Cuidado. Nunca mandes dinero a alguien que no conoces en persona.",
+        "Señales de estafa: te dicen que ganaste un premio, te piden pagar para liberar tu dinero, o te piden prisa o secreto.",
+        "Una vez que el dinero se cobra, casi nunca se puede recuperar.",
+        "Si alguien dice ser tu familiar y te pide dinero, llámale a su número de siempre.",
+    ],
+    "tus-derechos-al-enviar": [
+        "Tus derechos al mandar dinero desde Estados Unidos. Primero: guarda tu recibo.",
+        "En la mayoría de los casos, tienes 30 minutos para cancelar el envío.",
+        "Y hasta 180 días para reportar un error.",
+        "El recibo trae el número de envío y lo que debe recibir tu familia. Sin él, es más difícil reclamar.",
+    ],
+    "el-precio-cambia-cada-dia": [
+        "¿Siempre mandas con la misma app? La que más entrega cambia.",
+        "Las apps cambian su tipo de cambio todos los días, y a veces varias veces al día.",
+        "La que ganó la semana pasada, hoy puede ser la peor.",
+        "Compara el mismo día que vas a mandar. Toma menos de un minuto.",
+    ],
+}
+
+
 def shoot(url, path):
     for _ in range(2):  # headless Chrome occasionally hangs; one retry
         try:
@@ -245,12 +325,29 @@ for slug, v in VIDEOS.items():
     html = os.path.join(out, "slides.html")
     with open(os.path.join(HERE, "explainer.html")) as f:
         open(html, "w").write(f.read().replace("/*SLIDES*/[]", json.dumps([{"html": h} for h, _ in v["slides"]], ensure_ascii=False)))
+    lines = [voice.END_LINE + (" El link está en nuestro perfil." if "perfil" in os.environ.get("TAP", "") else "")
+             if 'class="logo"' in h else NARRATION[slug][i] for i, (h, _) in enumerate(v["slides"])]
+    clips, said = [], []
+    for i, line in enumerate(lines):
+        if voice.ENABLED:
+            path = os.path.join(out, f"voz{i}.m4a")
+            said.append(voice.speak(line, path))
+            clips.append(path)
+        else:
+            said.append(0)
+    secs_all, starts = voice.fit([([s], d) for (_, s), d in zip(v["slides"], said)])
     manifest = []
-    for i, (_, secs) in enumerate(v["slides"]):
+    for i, secs in enumerate(secs_all):
         png = os.path.join(out, f"slide{i}.png")
         shoot(f"file://{html}#n={i}", png)
         manifest.append(f"{png}\t{secs}")
     open(os.path.join(out, "manifest.txt"), "w").write("\n".join(manifest))
-    subprocess.run(["swift", os.path.join(HERE, "encode.swift"), os.path.join(out, "manifest.txt"), os.path.join(out, "video.mp4")], check=True)
+    final = os.path.join(out, "video.mp4")
+    silent = os.path.join(out, "silent.mp4") if clips else final
+    subprocess.run(["swift", os.path.join(HERE, "encode.swift"), os.path.join(out, "manifest.txt"), silent], check=True)
+    if clips:
+        voice.mux(silent, list(zip(clips, starts)), final)
+        os.remove(silent)
+    open(os.path.join(out, "narracion.txt"), "w").write("\n".join(lines) + "\n")
     open(os.path.join(out, "texto.txt"), "w").write("\n".join(v["caption"]) + "\n")
     print(out)
