@@ -155,6 +155,9 @@ def build_page(page, data, country, base, nav):
     head = re.sub(r'<meta name="description"[^>]*>\s*', "", head)
     body = re.sub(r'(<p class="lede" id="lede">).*?(</p>)', lambda x: x.group(1) + esc(m["lede"]) + x.group(2), body, flags=re.S)
     body = body.replace("<!--COUNTRY_LINKS-->", nav)
+    if country and app_links_html(data, country):
+        body = body.replace('<section class="crypto"', '<p class="app-links"><b>Precio de hoy por app:</b> '
+                            + app_links_html(data, country) + '</p><section class="crypto"', 1)
     ld = [{"@context": "https://schema.org", "@type": "WebApplication", "name": "Manda Más",
            "description": m["desc"], "applicationCategory": "FinanceApplication", "operatingSystem": "Any",
            "inLanguage": "es", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}]
@@ -462,6 +465,120 @@ def build_guide(page, data, slug, base, nav, links, aff):
     return doc_page(page, content, title, desc, f"guias/{slug}/", base, nav, ld, "en" if en else "es")
 
 
+# App pages: /<country>/<app>/ ("Remitly a México hoy"), one per service and country, built from the hourly data.
+# They answer the exact searches people make ("cuánto llega con Western Union a Guatemala") with today's numbers.
+APP_AMOUNTS = [100, 200, 300, 500, 1000]   # must be in BRACKETS
+APP_MAIN = 300                             # the amount used in the title, the lead and the full table
+APP_GUIDES = {"Wise": [("como-mandar-dinero-con-wise", "Cómo mandar dinero con Wise, paso a paso"), ("remitly-vs-wise", "Remitly vs. Wise")],
+              "Instarem": [("como-mandar-dinero-con-instarem", "Cómo mandar dinero con Instarem, paso a paso")],
+              "Remitly": [("remitly-vs-western-union", "Remitly vs. Western Union"), ("remitly-vs-wise", "Remitly vs. Wise")],
+              "Western Union": [("remitly-vs-western-union", "Remitly vs. Western Union"), ("alternativas-a-western-union", "Alternativas a Western Union")],
+              "Xoom": [("xoom-vs-wise-mexico", "Xoom vs. Wise")]}
+
+
+def app_slug(name):
+    return re.sub(r"[^a-z0-9]+", "-", name.lower().replace("(us)", "")).strip("-")
+
+
+def app_pages(data):
+    """[(country, service name)] for every service with a $300 price, in countries with at least two services (no banks)."""
+    out = []
+    for c in data["countries"]:
+        names = [r["name"] for r in ranked(c, APP_MAIN) if r["name"] not in BANKS]
+        if len(names) >= 2:
+            out += [(c, n) for n in names]
+    return out
+
+
+def app_links_html(data, country, skip=None):
+    names = [n for c, n in app_pages(data) if c["code"] == country["code"] and n != skip]
+    return "".join(f'<a href="/{SLUGS[country["code"]]}/{app_slug(n)}/">{esc(n)} a {esc(country["name"])} hoy</a>' for n in names)
+
+
+def build_app_page(page, data, c, name, base, nav, links, aff):
+    path = f"/{SLUGS[c['code']]}/{app_slug(name)}/"
+    pais, cur = c["name"], c["currencyName"]
+
+    def fair(rows):  # the services to compare against: no banks, no first-transfer promos
+        return [r for r in rows if r["name"] not in BANKS and r["markup"] >= -0.1 and r["name"] != name]
+
+    rows = ranked(c, APP_MAIN)
+    me = next(r for r in rows if r["name"] == name)
+    others = fair(rows)
+    q = c["providers"][name][str(APP_MAIN)]
+    lead = (f'Si mandas <b>${APP_MAIN}</b> con {esc(name)} a {esc(pais)}, tu familia recibe unos '
+            f'<b>{local_amount(me["received"], c)} {esc(cur)}</b>, con una comisión de ${me["fee"]:,.2f}.')
+    if others and others[0]["received"] > me["received"]:
+        best = others[0]
+        lead += (f' Hoy, <b>{esc(best["name"])}</b> entrega {local_amount(best["received"] - me["received"], c)} {esc(cur)} más '
+                 f'por el mismo envío ({local_amount(best["received"], c)}).')
+    else:
+        promo = any(r["markup"] < -0.1 and r["received"] > me["received"] and r["name"] not in BANKS for r in rows)
+        lead += (f" Hoy es la app que <b>más entrega</b> a {esc(pais)} por ese monto"
+                 + (" (sin contar promociones de primer envío)." if promo else "."))
+    if me["markup"] < -0.1:
+        lead += " <b>Ojo:</b> este precio es una promoción de primer envío; los siguientes envíos suelen recibir menos."
+
+    body = ""
+    for amount in APP_AMOUNTS:
+        rs = ranked(c, amount)
+        mine = next((r for r in rs if r["name"] == name), None)
+        if not mine:
+            continue
+        ot = fair(rs)
+        if ot and ot[0]["received"] > mine["received"]:
+            cmp = (f'{esc(ot[0]["name"])}<br><small>+{local_amount(ot[0]["received"] - mine["received"], c)} más</small>')
+        else:
+            cmp = f'<b>{esc(name)}</b><br><small>es la que más entrega</small>'
+        body += (f'<tr><td class="num">${amount:,}</td><td class="num"><b>{local_amount(mine["received"], c)}</b>'
+                 f'<br><small>comisión ${mine["fee"]:,.2f}</small></td><td>{cmp}</td></tr>')
+    table = (f'<div class="table-wrap"><table class="guide-table wrap"><caption>Con {esc(name)} a {esc(pais)}, tu familia recibe ({esc(cur)})</caption>'
+             f'<thead><tr><th class="num">Envías</th><th class="num">Recibe</th><th>La que más entrega</th></tr></thead><tbody>{body}</tbody></table></div>')
+
+    fx = ""
+    if c["currency"] != "USD" and c["mid"]:
+        fx = (f'<h2>Tipo de cambio de {esc(name)} hoy</h2><p>Con {esc(name)}, <b>1 dólar = {q["rate"]:,.2f} {esc(c["currency"])}</b>. '
+              f'El tipo de cambio real (el del mercado) está en {c["mid"]:,.2f}. ')
+        if q["markup"] > 0.05:
+            fx += (f'La diferencia, cerca de <b>{q["markup"]:.1f}%</b>, es lo que {esc(name)} se queda en el cambio, además de la comisión. '
+                   '<a href="/guias/tipo-de-cambio/">Cómo saber si te dan buen tipo de cambio</a>.</p>')
+        elif q["markup"] < -0.1:
+            fx += 'Te dan un tipo de cambio mejor que el real porque es una promoción de primer envío.</p>'
+        else:
+            fx += f'{esc(name)} usa prácticamente el tipo de cambio real; lo que cobra está en la comisión.</p>'
+
+    guides = "".join(f'<li><a href="/guias/{s}/">{esc(t)}</a></li>' for s, t in APP_GUIDES.get(name, []) if s in GUIDES)
+    elsewhere = "".join(f'<a href="/{SLUGS[x["code"]]}/{app_slug(name)}/">{esc(name)} a {esc(x["name"])}</a>'
+                        for x, n in app_pages(data) if n == name and x["code"] != c["code"])
+    go = go_link(name, c, APP_MAIN, None, path, links, aff, "cta")
+    content = (f'<p class="eyebrow">Precio de hoy · {esc(pais)}</p><h1>{esc(name)} a {esc(pais)} hoy: cuánto recibe tu familia</h1>'
+               f'<p class="updated">Precios actualizados el {fecha(data["collected"])}. Se actualizan cada hora.</p>'
+               f'<p class="lead">{lead}</p>'
+               + (f"<p>{go}</p>" if go else "")
+               + f'<h2>¿Cuánto llega con {esc(name)} según lo que mandes?</h2>{table}'
+               + fx
+               + f'<h2>Todas las apps a {esc(pais)} hoy (envío de ${APP_MAIN})</h2>'
+               + guide_table(data, c["code"], APP_MAIN, path, links, aff)
+               + f'<p><a class="cta" href="/{SLUGS[c["code"]]}/">Compara con tu monto exacto →</a></p>'
+               + f'<h2>Otras apps a {esc(pais)}</h2><p class="app-links">{app_links_html(data, c, name)}</p>'
+               + (f'<h2>{esc(name)} a otros países</h2><p class="app-links">{elsewhere}</p>' if elsewhere else "")
+               + (f'<h2>Guías</h2><ul>{guides}</ul>' if guides else "")
+               + '<p class="tip"><b>Recuerda:</b> las cifras son estimaciones, no cotizaciones garantizadas. El precio final lo ves en la app '
+                 'antes de confirmar. Manda Más es gratis; algunas apps nos pueden pagar una comisión si te registras desde nuestra página, '
+                 'sin costo para ti, y eso nunca cambia el orden.</p><!--SHARE-->')
+    url = (base or "https://mandamasdinero.com/") + path.lstrip("/")
+    share = urllib.parse.quote(f"{name} a {pais} hoy: cuánto llega " + url)
+    content = content.replace("<!--SHARE-->", f'<p><a class="share-wa" href="https://wa.me/?text={share}" target="_blank" rel="noopener">'
+                                              'Mándale esta página a un familiar por WhatsApp</a></p>')
+    title = f"{name} a {pais} hoy: cuánto llega por ${APP_MAIN} | Manda Más"
+    desc = (f"¿Cuánto recibe tu familia en {pais} si mandas dinero con {name}? Hoy, por ${APP_MAIN} llegan unos "
+            f"{local_amount(me['received'], c)} {cur}. Mira la comisión, el tipo de cambio y qué app entrega más.")
+    ld = {"@context": "https://schema.org", "@type": "Article", "headline": f"{name} a {pais} hoy: cuánto recibe tu familia",
+          "description": desc, "inLanguage": "es", "dateModified": data["collected"],
+          "author": {"@type": "Organization", "name": "Manda Más"}, "publisher": {"@type": "Organization", "name": "Manda Más"}}
+    return doc_page(page, content, title, desc, path.lstrip("/"), base, nav, ld)
+
+
 def build_guides_index(page, base, nav):
     items = ""
     for slug in GUIDES:
@@ -504,6 +621,12 @@ def write_site(page, data, site_dir, base):
         os.makedirs(os.path.join(site_dir, "guias", slug), exist_ok=True)
         with open(os.path.join(site_dir, "guias", slug, "index.html"), "w", encoding="utf-8") as f:
             f.write(build_guide(page, data, slug, base, nav, links, aff))
+    apps = app_pages(data)
+    for c, name in apps:
+        d = os.path.join(site_dir, SLUGS[c["code"]], app_slug(name))
+        os.makedirs(d, exist_ok=True)
+        with open(os.path.join(d, "index.html"), "w", encoding="utf-8") as f:
+            f.write(build_app_page(page, data, c, name, base, nav, links, aff))
     if base:
         day = data["collected"][:10]
         urls = "".join(f"<url><loc>{base}{'' if not c else SLUGS[c['code']] + '/'}</loc><lastmod>{day}</lastmod>"
@@ -512,11 +635,13 @@ def write_site(page, data, site_dir, base):
         urls += f"<url><loc>{base}guias/</loc><changefreq>weekly</changefreq></url>"
         urls += "".join(f"<url><loc>{base}guias/{slug}/</loc><lastmod>{day}</lastmod><changefreq>daily</changefreq></url>"
                         for slug in GUIDES)
+        urls += "".join(f"<url><loc>{base}{SLUGS[c['code']]}/{app_slug(n)}/</loc><lastmod>{day}</lastmod><changefreq>daily</changefreq></url>"
+                        for c, n in apps)
         with open(os.path.join(site_dir, "sitemap.xml"), "w", encoding="utf-8") as f:
             f.write('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + urls + "</urlset>")
         with open(os.path.join(site_dir, "robots.txt"), "w", encoding="utf-8") as f:
             f.write(f"User-agent: *\nAllow: /\nSitemap: {base}sitemap.xml\n")
-    return len(pages)
+    return len(pages) + len(apps)
 
 
 def check(data):
