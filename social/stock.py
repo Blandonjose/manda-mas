@@ -114,6 +114,13 @@ def _local(n, topics, fresh, now):
             if vid not in fresh:
                 fresh[vid] = now
                 out.append(os.path.join(d, f))
+    # Not enough unused clips: reuse the ones used longest ago (better than a plain background).
+    if len(out) < n:
+        old = sorted((ts, vid) for vid, ts in fresh.items() if vid.startswith("local:") and os.path.join(CLIPS, vid[6:]) not in out
+                     and os.path.exists(os.path.join(CLIPS, vid[6:])) and ts < now)
+        for ts, vid in old[:n - len(out)]:
+            fresh[vid] = now
+            out.append(os.path.join(CLIPS, vid[6:]))
     return out
 
 

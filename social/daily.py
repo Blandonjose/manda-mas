@@ -36,6 +36,16 @@ TIPS = {"sin-comision-no-es-gratis": "“Sin comisión” NO quiere decir gratis
         "tus-derechos-al-enviar": "Tus derechos al mandar dinero desde Estados Unidos 📄 #shorts",
         "nombre-exacto": "Para que no se atore tu envío de dinero ⏳ #shorts",
         "el-precio-cambia-cada-dia": "La app que más entrega cambia cada día 📈 #shorts"}
+# Seasonal tips: YouTube titles, and the days the 3 PM tip is one of them (other days keep the normal rotation).
+SEASONAL = {"navidad-fechas": "Mandar dinero para Navidad: la fecha para que llegue antes del 24 🎄 #shorts",
+            "navidad-envio-grande": "En diciembre mandamos más: así rinde más tu envío 🎄 #shorts",
+            "navidad-estafas": "Cuidado con estas estafas de fin de año al mandar dinero ⚠️ #shorts",
+            "ano-nuevo-fechas": "Mandar dinero para Año Nuevo: la fecha para que llegue antes del 31 🎆 #shorts"}
+SEASON_DAYS = {"2026-12-02": "navidad-fechas", "2026-12-04": "navidad-envio-grande", "2026-12-06": "navidad-estafas",
+               "2026-12-08": "navidad-fechas", "2026-12-10": "navidad-envio-grande", "2026-12-12": "navidad-estafas",
+               "2026-12-14": "navidad-fechas", "2026-12-16": "navidad-envio-grande", "2026-12-18": "navidad-fechas",
+               "2026-12-20": "navidad-estafas", "2026-12-21": "navidad-fechas", "2026-12-24": "ano-nuevo-fechas",
+               "2026-12-26": "navidad-estafas", "2026-12-28": "ano-nuevo-fechas", "2026-12-30": "navidad-envio-grande"}
 TAP = "🔗 Link en el perfil"
 DISC = "Manda Más es gratis. Algunas apps nos pueden pagar una comisión si te registras desde nuestra página, sin costo para ti."
 
@@ -82,7 +92,7 @@ def tip_video(slug, folder):
     for f in os.listdir(folder):
         if f != "video.mp4":
             os.remove(os.path.join(folder, f))
-    captions(folder, TIPS[slug], body, "consejos")
+    captions(folder, TIPS.get(slug) or SEASONAL[slug], body, "consejos")
 
 
 def main():
@@ -97,6 +107,7 @@ def main():
     plan, skipped, made = [], [], set()
     tips = list(TIPS)
     tip_today = tips[n % len(tips)]
+    tip_today = SEASON_DAYS.get(day.isoformat(), tip_today)
     for i, (folder_name, time) in enumerate(slots):
         folder = os.path.join(out, folder_name)
         if folder_name == "2-tarde":

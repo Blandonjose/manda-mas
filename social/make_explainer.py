@@ -225,6 +225,83 @@ VIDEOS = {
             "Compara el mismo día que vas a mandar. Toma menos de un minuto 🙌",
         ],
     },
+    # --- Christmas 2026 (daily.py only uses these in December, see SEASONAL there) ---
+    "navidad-fechas": {
+        "slides": [
+            ('<div class="eyebrow">🎄 Navidad 2026</div><h1>¿Quieres que llegue <em>antes del 24</em>?</h1>', 3.0),
+            ('<h2>Si tu familia recibe en el banco, manda a más tardar el</h2><div class="num">22 dic</div><h2>martes.</h2>', 4.2),
+            ('<h2>El 25 es viernes y los bancos cierran.</h2><div class="cards">'
+             '<div class="card"><div class="top"><span>Depósito enviado el 24 en la tarde</span></div>'
+             '<div class="bot"><span>podría llegar hasta el lunes 28</span></div></div></div>', 4.6),
+            ('<h2>¿Último momento? Mejor <em>efectivo</em> o tarjeta de débito.</h2>'
+             '<p class="small">Los tiempos dependen de cada app y banco.</p>', 3.6),
+            (LOGO, 4.4),
+        ],
+        "caption": [
+            "🎄 ¿Quieres que tu dinero llegue antes de Navidad?", "",
+            "🏦 Si tu familia recibe en cuenta de banco: manda a más tardar el martes 22 de diciembre.",
+            "⚠️ El 25 es viernes y los bancos cierran. Un depósito enviado el 24 en la tarde podría llegar hasta el lunes 28.",
+            "💵 ¿Último momento? Mejor retiro en efectivo o tarjeta de débito.", "",
+            "Los tiempos dependen de cada app y banco. Si es tu primera vez con una app, no lo dejes para el último día.", "",
+            "Fechas y qué app entrega más hoy: mandamasdinero.com/guias/enviar-dinero-navidad",
+        ],
+    },
+    "navidad-envio-grande": {
+        "slides": [
+            ('<div class="eyebrow">🎄 En diciembre mandamos más</div><h1>Con más dinero, la app <em>importa más</em>.</h1>', 3.2),
+            ('<div class="eyebrow">Ejemplo con $500 a México</div><div class="cards">'
+             '<div class="card"><div class="top"><span>App A · 18.10 por dólar</span><span>9,050</span></div></div>'
+             '<div class="card good"><div class="top"><span>App B · 18.40 por dólar</span><span>9,200</span></div></div></div>'
+             '<p class="small">Ejemplo para explicar. Los precios reales cambian cada día.</p>', 5.0),
+            ('<div class="num">+150</div><h2>pesos para la cena, con el mismo dinero.</h2>', 3.4),
+            ('<h2>Compara con tu monto exacto <em>el día que vas a mandar</em>.</h2>', 3.2),
+            (LOGO, 4.4),
+        ],
+        "caption": [
+            "🎄 En diciembre mandamos más… y con más dinero, la app importa más", "",
+            "Ejemplo con $500 a México:",
+            "🔸 App A a 18.10 por dólar → 9,050 pesos",
+            "✅ App B a 18.40 por dólar → 9,200 pesos", "",
+            "150 pesos más para la cena, con el mismo dinero. (Ejemplo para explicar; los precios cambian cada día.)", "",
+            "Compara con tu monto exacto el día que vas a mandar.",
+        ],
+    },
+    "navidad-estafas": {
+        "slides": [
+            ('<div class="eyebrow">⚠️ Estafas de fin de año</div><h1>En diciembre <em>aumentan</em>. Cuídate.</h1>', 3.0),
+            ('<h2>Si te llaman:</h2><div class="cards">'
+             '<div class="card"><div class="top"><span>“Tu familiar tuvo un accidente”</span></div></div>'
+             '<div class="card"><div class="top"><span>“Tienes un paquete retenido”</span></div></div>'
+             '<div class="card"><div class="top"><span>“Ganaste un premio navideño”</span></div></div></div>', 4.8),
+            ('<h2>Cuelga y llama tú a tu familiar a su número de siempre.</h2>', 3.4),
+            ('<h2>Usa solo la app oficial. <em>No</em> abras links que te llegan por mensaje.</h2>', 3.4),
+            (LOGO, 4.4),
+        ],
+        "caption": [
+            "⚠️ En diciembre aumentan las estafas. Cuídate y cuida a tu familia", "",
+            "Si te llaman o escriben: “tu familiar tuvo un accidente”, “tienes un paquete retenido”, “ganaste un premio navideño”… cuelga y llama tú a tu familiar a su número de siempre.", "",
+            "Usa solo la app oficial y no abras links que te llegan por mensaje.",
+            "Si te estafaron: avisa a la app y repórtalo en reportefraude.ftc.gov", "",
+            "Compártelo con alguien que lo necesite 🙏",
+        ],
+    },
+    "ano-nuevo-fechas": {
+        "slides": [
+            ('<div class="eyebrow">🎆 Año Nuevo</div><h1>¿Que llegue <em>antes del 31</em>?</h1>', 3.0),
+            ('<h2>Si tu familia recibe en el banco, manda a más tardar el</h2><div class="num">29 dic</div><h2>martes.</h2>', 4.2),
+            ('<h2>El 31 muchos bancos cierran temprano, y el 1 de enero están cerrados.</h2>', 3.8),
+            ('<h2>¿Último momento? Mejor <em>efectivo</em> o tarjeta de débito.</h2>'
+             '<p class="small">Los tiempos dependen de cada app y banco.</p>', 3.6),
+            (LOGO, 4.4),
+        ],
+        "caption": [
+            "🎆 ¿Quieres que tu dinero llegue antes de Año Nuevo?", "",
+            "🏦 Si tu familia recibe en cuenta de banco: manda a más tardar el martes 29 de diciembre.",
+            "⚠️ El 31 muchos bancos cierran temprano, y el 1 de enero están cerrados.",
+            "💵 ¿Último momento? Mejor retiro en efectivo o tarjeta de débito.", "",
+            "Los tiempos dependen de cada app y banco.",
+        ],
+    },
 }
 
 
@@ -301,6 +378,30 @@ NARRATION = {
         "Las apps cambian su tipo de cambio todos los días, y a veces varias veces al día.",
         "La que ganó la semana pasada, hoy puede ser la peor.",
         "Compara el mismo día que vas a mandar. Toma menos de un minuto.",
+    ],
+    "navidad-fechas": [
+        "¿Quieres que tu dinero llegue antes de Navidad?",
+        "Si tu familia recibe en el banco, manda a más tardar el martes 22 de diciembre.",
+        "El 25 es viernes y los bancos cierran. Un depósito enviado el 24 en la tarde podría llegar hasta el lunes 28.",
+        "Si es de último momento, mejor retiro en efectivo o tarjeta de débito.",
+    ],
+    "navidad-envio-grande": [
+        "En diciembre mandamos más dinero, y con más dinero, la app importa más.",
+        "Un ejemplo con 500 dólares a México. Una app te da 18.10 por dólar, y tu familia recibe 9050 pesos. Otra te da 18.40, y recibe 9200.",
+        "Son 150 pesos más para la cena, con el mismo dinero.",
+        "Compara con tu monto exacto el día que vas a mandar.",
+    ],
+    "navidad-estafas": [
+        "Cuidado. En diciembre aumentan las estafas.",
+        "Si te llaman diciendo que tu familiar tuvo un accidente, que tienes un paquete retenido, o que ganaste un premio navideño…",
+        "cuelga, y llama tú a tu familiar a su número de siempre.",
+        "Usa solo la app oficial, y no abras links que te llegan por mensaje.",
+    ],
+    "ano-nuevo-fechas": [
+        "¿Quieres que tu dinero llegue antes de Año Nuevo?",
+        "Si tu familia recibe en el banco, manda a más tardar el martes 29 de diciembre.",
+        "El 31 muchos bancos cierran temprano, y el primero de enero están cerrados.",
+        "Si es de último momento, mejor retiro en efectivo o tarjeta de débito.",
     ],
 }
 
