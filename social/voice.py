@@ -16,7 +16,12 @@ PAD = 0.6  # silence after each line before the picture changes
 def speak(text, path):
     # Recent macOS builds can expose no AAC encoder through afconvert. Keep the
     # narration as AIFF; mux.swift transcodes it when it produces the final MP4.
-    subprocess.run(["say", "-v", VOICE, "-r", "180", "-o", path, text], check=True, capture_output=True)
+    # Upsample to 48 kHz stereo PCM (no encoder needed), so the final AAC is 48 kHz stereo too
+    # (what Instagram, Facebook and YouTube recommend) instead of say's 22 kHz mono.
+    raw = path + ".raw.aiff"
+    subprocess.run(["say", "-v", VOICE, "-r", "180", "-o", raw, text], check=True, capture_output=True)
+    subprocess.run(["afconvert", "-f", "AIFF", "-d", "BEI16@48000", "-c", "2", raw, path], check=True, capture_output=True)
+    os.remove(raw)
     info = subprocess.run(["afinfo", path], capture_output=True, text=True).stdout
     return float(re.search(r"estimated duration: ([\d.]+)", info).group(1))
 
