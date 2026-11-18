@@ -197,7 +197,7 @@ def head_meta(title, desc, url, base):
 
 INFO_PAGES = ["quienes-somos", "privacidad", "contacto"]  # pages/<slug>.html, built at /<slug>/
 # guides/<slug>.html, built at /guias/<slug>/ and listed on /guias/ in this order
-GUIDES = ["xoom-vs-wise-mexico", "como-mandar-dinero-con-wise", "como-mandar-dinero-con-instarem", "forma-mas-barata-mandar-dinero-a-mexico", "mandar-dinero-a-guatemala", "mandar-dinero-a-honduras",
+GUIDES = ["enviar-dinero-navidad", "xoom-vs-wise-mexico", "como-mandar-dinero-con-wise", "como-mandar-dinero-con-instarem", "forma-mas-barata-mandar-dinero-a-mexico", "mandar-dinero-a-guatemala", "mandar-dinero-a-honduras",
           "mandar-dinero-a-republica-dominicana", "mandar-dinero-a-colombia", "mandar-dinero-a-el-salvador", "mandar-dinero-a-peru", "mandar-dinero-a-bolivia",
           "cuanto-dinero-se-puede-enviar-a-mexico", "mandar-dinero-a-uruguay", "alternativas-a-western-union",
           "remitly-vs-wise", "remitly-vs-western-union", "envios-sin-comision",
@@ -248,6 +248,7 @@ def doc_page(page, content, title, desc, path, base, nav, ld=None, lang="es"):
 #   <!--TABLE:MX:300-->              every service for that country and amount (amount must be in BRACKETS)
 #   <!--VS:Remitly|Western Union:300-->  those two services side by side in every country
 #   <!--BEATS:Western Union:300-->  per country: that service against the best other one (no banks, no first-transfer promos)
+#   <!--BEST:500-->                  per country: the service that delivers the most and its lead over the second
 #   <!--TOP:MX:300-->                name of the service that delivers the most
 #   <!--DATE-->                      day the data was collected
 #   <!--GO:Wise-->                   big "Ir a Wise" button with the same (referral) link as the comparison
@@ -405,6 +406,26 @@ def guide_beats(data, name, amount):
             + source_note(data, amount, "", False))
 
 
+def guide_best(data, amount):
+    """Per country: the service that delivers the most (no banks, no first-transfer promos) and its lead over the next one."""
+    body = ""
+    for c in data["countries"]:
+        rows = [r for r in ranked(c, amount) if r["name"] not in BANKS and r["markup"] >= -0.1]
+        if len(rows) < 2:
+            continue
+        best, second = rows[0], rows[1]
+        diff = best["received"] - second["received"]
+        body += (f'<tr><td><a href="/{SLUGS[c["code"]]}/">{esc(c["name"])}</a></td>'
+                 f'<td><b>{esc(best["name"])}</b><br><small>+{local_amount(diff, c)} vs. {esc(second["name"])}</small></td>'
+                 f'<td class="num">{local_amount(best["received"], c)}<br><small>{esc(c["currencyName"])}</small></td></tr>')
+    if not body:
+        return "<p>Por ahora no tenemos datos para esta comparación.</p>"
+    head = (f'<caption>Si mandas ${amount:,}, tu familia recibe</caption><thead><tr><th>País</th><th>La que más entrega</th>'
+            '<th class="num">Recibe</th></tr></thead>')  # 3 columns so it fits a phone
+    return (f'<div class="table-wrap"><table class="guide-table wrap">{head}<tbody>{body}</tbody></table></div>'
+            + source_note(data, amount, "", False))
+
+
 def build_guide(page, data, slug, base, nav, links, aff):
     title, desc, content = read_doc("guides", slug)
     en = "<!--lang: en-->" in content
@@ -414,6 +435,7 @@ def build_guide(page, data, slug, base, nav, links, aff):
     content = re.sub(r"<!--VS:([^|]+)\|([^:]+):(\d+)-->", lambda m: guide_vs(data, m[1], m[2], int(m[3]), path, links, aff, en), content)
 
     content = re.sub(r"<!--BEATS:([^:]+):(\d+)-->", lambda m: guide_beats(data, m[1], int(m[2])), content)
+    content = re.sub(r"<!--BEST:(\d+)-->", lambda m: guide_best(data, int(m[1])), content)
 
     def top(m):
         c = next((x for x in data["countries"] if x["code"] == m[1]), None)

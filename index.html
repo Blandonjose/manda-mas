@@ -75,6 +75,8 @@ a { color: var(--navy-2); }
 .hero-grid { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 48px; align-items: center; }
 .hero-copy { display: grid; gap: 18px; }
 .hero .eyebrow { color: var(--accent); }
+.season { justify-self: start; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22); color: #fff; border-radius: 999px; padding: 7px 14px; font-size: .92rem; font-weight: 600; text-decoration: none; }
+.season:hover { background: rgba(255,255,255,.18); }
 .hero h1 { font-size: clamp(2.3rem, 5.4vw, 3.9rem); font-weight: 800; letter-spacing: -0.03em; }
 .hero h1 em { font-style: normal; color: var(--accent); }
 .lede { color: var(--on-navy-muted); font-size: 1.08rem; max-width: 56ch; }
@@ -249,6 +251,8 @@ a { color: var(--navy-2); }
 .guide-table tr.top td { background: var(--accent-soft); }
 .guide-table small { color: var(--muted); }
 .guide-table a { font-weight: 700; }
+.guide-table.wrap th, .guide-table.wrap td { white-space: normal; }
+.guide-table.wrap td:last-child { white-space: nowrap; }
 .doc ul.guide-list { list-style: none; padding: 0; gap: 12px; }
 .guide-list li { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
 .guide-list a { font-family: var(--display); font-weight: 800; font-size: 1.15rem; text-decoration: none; }
@@ -303,6 +307,7 @@ a { color: var(--navy-2); }
       </nav>
       <div class="hero-grid">
         <div class="hero-copy">
+          <a class="season" href="/guias/enviar-dinero-navidad/" data-umami-event="season_guide">🎄 Navidad 2026: cuándo enviar para que llegue a tiempo →</a>
           <p class="eyebrow">Gratis · Estimaciones actualizadas · En español</p>
           <h1>Que llegue <em>más dinero</em> a tu familia</h1>
           <p class="lede" id="lede">Mira cuánto puede recibir tu familia con cada servicio al mandar dinero desde Estados Unidos. Comparamos Remitly, Western Union, Xoom, Wise y más para envíos a México, Guatemala, Honduras, El Salvador, República Dominicana, Colombia y Costa Rica.</p>
