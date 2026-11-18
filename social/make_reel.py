@@ -99,7 +99,7 @@ def main():
     clips, said = [], []
     for i, line in enumerate(lines):
         if voice.ENABLED:
-            path = os.path.join(out, f"voz{i}.m4a")
+            path = os.path.join(out, f"voz{i}.aiff")
             said.append(voice.speak(line, path))
             clips.append(path)
         else:

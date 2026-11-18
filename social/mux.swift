@@ -1,5 +1,5 @@
 // Put narration clips on a silent video without re-encoding the picture.
-// usage: swift mux.swift silent.mp4 out.mp4 clip1.m4a START1 [clip2.m4a START2 ...]   (START in seconds)
+// usage: swift mux.swift silent.mp4 out.mp4 clip1.aiff START1 [clip2.aiff START2 ...]   (START in seconds)
 import AVFoundation
 
 let a = CommandLine.arguments
@@ -23,7 +23,9 @@ while i + 1 < a.count {
     }
     i += 2
 }
-let export = AVAssetExportSession(asset: comp, presetName: AVAssetExportPresetPassthrough)!
+// HighestQuality transcodes the AIFF narration to an MP4-compatible audio
+// stream. Passthrough cannot mux uncompressed AIFF audio into an MP4.
+let export = AVAssetExportSession(asset: comp, presetName: AVAssetExportPresetHighestQuality)!
 export.outputURL = out
 export.outputFileType = .mp4
 export.shouldOptimizeForNetworkUse = true  // moov first ("faststart"), safer for uploads
