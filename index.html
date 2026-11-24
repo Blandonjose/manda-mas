@@ -84,6 +84,7 @@ a { color: var(--navy-2); }
 .h1-sub em { font-style: normal; color: var(--accent); }
 .go-wrap { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 .aff-tag { font-size: 0.72rem; color: var(--muted); font-weight: 400; }
+.best-card .trust { display: block; margin-top: 6px; text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--muted); }
 .best-card .go { justify-content: center; margin-top: 8px; background: var(--accent); color: #2a1400; }
 .best-card .aff-tag { text-align: center; }
 .guide-table .aff-tag { display: block; margin-top: 2px; }
@@ -492,6 +493,7 @@ a { color: var(--navy-2); }
   // Analytics only: add a service name here once its LINKS url above is a referral link, so
   // outbound_service_click reports affiliate: true for it.
   const AFFILIATE = new Set(["Instarem", "Wise"]);
+  const TRUST = {"Instarem": "/guias/instarem-es-confiable/"};
   // Step-by-step guides for people new to these apps, linked under the service's "Ir a…" button.
   const HOWTO = {
     "Wise":     "/guias/como-mandar-dinero-con-wise/",
@@ -772,6 +774,11 @@ a { color: var(--navy-2); }
       a.dataset.service = best.name; a.dataset.rank = "1"; a.dataset.location = "best_card";
       card.appendChild(a);
       if (AFFILIATE.has(best.name)) card.appendChild(el("small", "aff-tag", "Enlace de afiliado"));
+    }
+    if (TRUST[best.name]) {   // a little-known #1 gets a "is it safe?" link: people won't click an app they've never heard of
+      const t = el("a", "trust", "¿" + best.name + " es confiable? →");
+      t.href = TRUST[best.name]; t.dataset.umamiEvent = "trust_click"; t.dataset.umamiEventService = best.name;
+      card.appendChild(t);
     }
     box.appendChild(card);
     if (list.length > 1 && worst.received < best.received) {

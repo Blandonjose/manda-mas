@@ -198,6 +198,12 @@ PICKUP = {
     "SV": [("Remitly", "Fedecrédito, Súper Selectos, Banco Cuscatlán, Banco Promerica, BAC Credomatic y otros", "https://www.remitly.com/us/en/providers-el-salvador"),
            ("Xoom", "Banco Agrícola, BAC Credomatic, Súper Selectos y otros", "https://www.xoom.com/xoom-locations?receiveCountryCode=SV&service=cashPickup"),
            ("Western Union", "Sus propias agencias y agentes autorizados", WU_LOCATOR.format(cc="sv"))],
+    "DO": [("Remitly", "Caribe Express, Banreservas, Banco BHD, Banco Popular y otros", "https://www.remitly.com/us/en/dominican-republic/partners"),
+           ("Xoom", "Banreservas, Caribe Express, Banco BHD, Banco Popular y otros", "https://www.xoom.com/xoom-locations?receiveCountryCode=DO&service=cashPickup"),
+           ("Western Union", "Sus propias agencias y agentes autorizados", WU_LOCATOR.format(cc="do"))],
+    "CO": [("Remitly", "Grupo Éxito (Éxito, Carulla, Super Inter), Bancolombia y otros", "https://www.remitly.com/us/en/providers-colombia"),
+           ("Xoom", "Éxito, Bancolombia, Davivienda y otros", "https://www.xoom.com/xoom-locations?receiveCountryCode=CO&service=cashPickup"),
+           ("Western Union", "Sus propias agencias y agentes autorizados", WU_LOCATOR.format(cc="co"))],
 }
 
 
@@ -404,7 +410,7 @@ GUIDES = ["enviar-dinero-navidad", "xoom-vs-wise-mexico", "como-mandar-dinero-co
           "cuanto-dinero-se-puede-enviar-a-mexico", "mandar-dinero-a-uruguay", "alternativas-a-western-union",
           "remitly-vs-wise", "remitly-vs-western-union", "envios-sin-comision",
           "which-is-better-remitly-or-western-union", "remitly-vs-wise-which-is-better",
-          "tipo-de-cambio", "promociones-primer-envio", "que-necesito-para-mandar-dinero", "cobrar-remesa-en-efectivo"]
+          "tipo-de-cambio", "promociones-primer-envio", "que-necesito-para-mandar-dinero", "cobrar-remesa-en-efectivo", "instarem-es-confiable"]
 WHATSAPP_CHANNEL = "https://whatsapp.com/channel/0029VbEb41M9mrGinB1b3K2y"  # also linked in index.html (results banner and footer)
 NAV_LINKS = ('<div class="nav-links"><a href="/#opciones">Comparar</a><a href="/#como-funciona">Cómo funciona</a>'
              '<a href="/guias/">Guías</a><a href="/#preguntas">Preguntas</a></div>')
@@ -678,7 +684,7 @@ def build_guide(page, data, slug, base, nav, links, aff):
 APP_AMOUNTS = [100, 200, 300, 500, 1000]   # must be in BRACKETS
 APP_MAIN = 300                             # the amount used in the title, the lead and the full table
 APP_GUIDES = {"Wise": [("como-mandar-dinero-con-wise", "Cómo mandar dinero con Wise, paso a paso"), ("remitly-vs-wise", "Remitly vs. Wise")],
-              "Instarem": [("como-mandar-dinero-con-instarem", "Cómo mandar dinero con Instarem, paso a paso")],
+              "Instarem": [("instarem-es-confiable", "¿Instarem es confiable?"), ("como-mandar-dinero-con-instarem", "Cómo mandar dinero con Instarem, paso a paso")],
               "Remitly": [("remitly-vs-western-union", "Remitly vs. Western Union"), ("remitly-vs-wise", "Remitly vs. Wise")],
               "Western Union": [("remitly-vs-western-union", "Remitly vs. Western Union"), ("alternativas-a-western-union", "Alternativas a Western Union")],
               "Xoom": [("xoom-vs-wise-mexico", "Xoom vs. Wise")]}
