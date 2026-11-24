@@ -253,6 +253,21 @@ a { color: var(--navy-2); }
 .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
 .app-links { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px 0 0; }
 .app-links a { display: inline-block; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; font-weight: 600; }
+.pickup { margin-top: 28px; padding: 18px 18px 6px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+.pickup .section-title { font-size: 1.25rem; margin: 0 0 8px; }
+.pickup p { margin: 8px 0 12px; }
+.pickup-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.pickup-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); }
+.pickup-list b { flex: 0 0 auto; min-width: 7.5em; }
+.pickup-list span { flex: 1 1 16em; color: var(--muted); font-size: 0.92rem; }
+.pickup-find { flex: 0 0 auto; display: inline-block; padding: 8px 14px; border-radius: 999px; background: var(--btn, #2f6fd6); color: #fff; font-weight: 700; font-size: 0.88rem; text-decoration: none; }
+.pickup-note { font-size: 0.82rem; color: var(--muted); }
+.doc .pickup-list { padding-left: 0; }
+.tilemap { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 520px; margin: 12px 0 16px; }
+.tilemap .tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 64px; padding: 6px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 0.78rem; font-weight: 600; text-align: center; text-decoration: none; line-height: 1.15; }
+.tilemap .tile span { font-size: 1.5rem; }
+.tilemap .tile.on { border: 2px solid var(--accent); background: var(--accent-soft); color: var(--ink); }
+.doc h3 { scroll-margin-top: 80px; margin-top: 20px; }
 .guide-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
 .guide-table caption { text-align: left; padding: 14px 14px 4px; font-weight: 700; }
 .guide-table th, .guide-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }

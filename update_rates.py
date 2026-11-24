@@ -179,6 +179,75 @@ def country_lede(data, c, amount=300):
             f"Comparamos {len(ranked(c, amount))} servicios; las cifras son estimaciones.")
 
 
+# Cash pickup: where the family can collect cash, by country. Chains come from each company's own site
+# (Remitly "providers-<country>" pages, Xoom "xoom-locations"), checked on PICKUP_CHECKED. Western Union's network is
+# its own agents, so we only link its official locator. Countries not listed here just get the locator links.
+PICKUP_CHECKED = "24 de noviembre de 2026"
+PICKUP_GUIDE = "cobrar-remesa-en-efectivo"
+WU_LOCATOR = "https://www.westernunion.com/{cc}/es/web/find-locations.html"
+PICKUP = {
+    "MX": [("Remitly", "Elektra / Banco Azteca, OXXO, Walmart, Bodega Aurrera, BanCoppel, Circle K y otros", "https://www.remitly.com/us/en/providers-mexico"),
+           ("Xoom", "Elektra, OXXO, Walmart / Bodega Aurrera, Soriana, BanCoppel, Farmacias Guadalajara, Banorte, BBVA y otros", "https://www.xoom.com/xoom-locations?receiveCountryCode=MX&service=cashPickup"),
+           ("Western Union", "Sus propias agencias y agentes autorizados", WU_LOCATOR.format(cc="mx"))],
+    "GT": [("Remitly", "Banco Industrial, Banrural, Banco G&T Continental, Banco Promerica, BAM y otros", "https://www.remitly.com/us/en/providers-guatemala"),
+           ("Xoom", "Banrural, Banco Industrial, Banco G&T Continental, Elektra y otros", "https://www.xoom.com/xoom-locations?receiveCountryCode=GT&service=cashPickup"),
+           ("Western Union", "Sus propias agencias y agentes autorizados", WU_LOCATOR.format(cc="gt"))],
+    "HN": [("Remitly", "Banco Atlántida, Banco de Occidente, Ficohsa, Banrural, BanPaís, Elektra / Banco Azteca y otros", "https://www.remitly.com/us/en/providers-honduras"),
+           ("Xoom", "Banco de Occidente, Banco Atlántida, Banrural, Elektra y otros", "https://www.xoom.com/xoom-locations?receiveCountryCode=HN&service=cashPickup"),
+           ("Western Union", "Sus propias agencias y agentes autorizados", WU_LOCATOR.format(cc="hn"))],
+    "SV": [("Remitly", "Fedecrédito, Súper Selectos, Banco Cuscatlán, Banco Promerica, BAC Credomatic y otros", "https://www.remitly.com/us/en/providers-el-salvador"),
+           ("Xoom", "Banco Agrícola, BAC Credomatic, Súper Selectos y otros", "https://www.xoom.com/xoom-locations?receiveCountryCode=SV&service=cashPickup"),
+           ("Western Union", "Sus propias agencias y agentes autorizados", WU_LOCATOR.format(cc="sv"))],
+}
+
+
+def pickup_list(code):
+    """The cash pickup list for one country: who pays out, where, and a button to that company's official locator."""
+    items = ""
+    for svc, where, url in PICKUP.get(code, []):
+        items += (f'<li><b>{esc(svc)}</b><span>{esc(where)}</span>'
+                  f'<a class="pickup-find" href="{esc(url)}" target="_blank" rel="noopener nofollow" data-umami-event="pickup_locator" '
+                  f'data-umami-event-service="{esc(svc)}" data-umami-event-country="{code.lower()}">Buscar el punto más cercano ↗</a></li>')
+    return f'<ul class="pickup-list">{items}</ul>' if items else ""
+
+
+def pickup_section(c):
+    """'¿Dónde recoge el dinero tu familia?' on a country page."""
+    name, code = esc(c["name"]), c["code"]
+    if code in PICKUP:
+        body = (f'<p>Si tu familia no tiene cuenta de banco ni celular, puede <b>recoger el dinero en efectivo</b> en una tienda o un banco. '
+                'Solo lleva su identificación oficial y el número de envío que te da la app. Estos son algunos lugares donde se recoge en '
+                f'{name}, según cada empresa:</p>' + pickup_list(code) +
+                f'<p class="pickup-note">Wise e Instarem no tienen retiro en efectivo en {name}: depositan en cuenta de banco. Lista tomada de los '
+                f'sitios de cada empresa el {PICKUP_CHECKED}; puede cambiar. Antes de que tu familia vaya, confirma el punto de pago en la app.</p>')
+    else:
+        body = (f'<p>Si tu familia no tiene cuenta de banco ni celular, puede recoger el dinero en efectivo en una agencia. Lleva su identificación '
+                'oficial y el número de envío. Wise e Instarem no tienen retiro en efectivo; Western Union, Remitly y Xoom sí, en muchos países. '
+                f'Busca el punto más cercano en el localizador oficial: <a href="https://location.westernunion.com/" target="_blank" rel="noopener nofollow" '
+                f'data-umami-event="pickup_locator" data-umami-event-service="Western Union" data-umami-event-country="{code.lower()}">Western Union ↗</a>.</p>')
+    return (f'<section class="pickup" id="efectivo"><h2 class="section-title">¿Dónde recoge el dinero tu familia en {name}?</h2>{body}'
+            f'<p><a href="/guias/{PICKUP_GUIDE}/">Cómo cobrar una remesa en efectivo, paso a paso →</a></p></section>')
+
+
+def pickup_map():
+    """A tap-to-open 'map' of the countries: tiles placed roughly where each country is. No map data to keep up to date."""
+    spots = {"MX": (1, 1), "GT": (1, 2), "HN": (2, 2), "DO": (4, 2), "SV": (1, 3), "CR": (2, 3), "CO": (3, 4),
+             "PE": (2, 5), "BO": (3, 5), "CL": (2, 6), "UY": (4, 6)}
+    names = {code: name for code, name, *_ in COUNTRIES}
+    tiles = ""
+    for code, (col, row) in spots.items():
+        flag = "".join(chr(0x1F1E6 + ord(ch) - 65) for ch in code)
+        href = f"#{code.lower()}" if code in PICKUP else f"/{SLUGS[code]}/#efectivo"
+        tiles += (f'<a class="tile{" on" if code in PICKUP else ""}" style="grid-column:{col};grid-row:{row}" href="{href}">'
+                  f'<span aria-hidden="true">{flag}</span>{esc(names[code])}</a>')
+    return f'<nav class="tilemap" aria-label="Elige el país donde recoge tu familia">{tiles}</nav>'
+
+
+def pickup_country(code):
+    name = esc(next(n for c, n, *_ in COUNTRIES if c == code))
+    return f'<h3 id="{code.lower()}">{name}</h3>' + pickup_list(code)
+
+
 def country_faq(data, c):
     """Three questions about this country, answered with today's numbers (shown on the page and sent to Google)."""
     pais, cur, day = esc(c["name"]), esc(c["currencyName"]), fecha(data["collected"])
@@ -210,6 +279,11 @@ def country_faq(data, c):
                     f"Hoy, con $300, {esc(win['name'])} entrega más: unos {local_amount(win['received'], c)} {cur}, frente a "
                     f"{local_amount(lose['received'], c)} con {esc(lose['name'])}. Wise deposita en cuenta de banco; Remitly en muchos "
                     'países también permite recoger en efectivo. <a href="/guias/remitly-vs-wise/">Ver Remitly vs Wise en todos los países</a>.'))
+    if c["code"] in PICKUP:
+        out.append((f"¿Dónde puede recoger el dinero en efectivo mi familia en {pais}?",
+                    "Según cada empresa, se puede recoger en " + "; ".join(f"{esc(s)}: {esc(w)}" for s, w, _ in PICKUP[c["code"]]) +
+                    ". Tu familia lleva su identificación oficial y el número de envío. Wise e Instarem no tienen retiro en efectivo. "
+                    f'Confirma el punto de pago en la app antes de ir. <a href="/guias/{PICKUP_GUIDE}/">Cómo cobrar en efectivo, paso a paso</a>.'))
     return "".join(f"<details><summary>{q}</summary><p>{a}</p></details>" for q, a in out)
 
 
@@ -265,6 +339,7 @@ def build_page(page, data, country, base, nav):
             guides.append(f'<a href="/guias/remitly-vs-wise/">¿Remitly o Wise para {name}?</a>')
         if guides:
             extra.append('<p class="app-links"><b>Guías:</b> ' + "".join(guides) + '</p>')
+        extra.append(pickup_section(country))
         body = body.replace('<section class="crypto"', "".join(extra) + '<section class="crypto"', 1)
         faq = country_faq(data, country)
         if faq:
@@ -329,7 +404,7 @@ GUIDES = ["enviar-dinero-navidad", "xoom-vs-wise-mexico", "como-mandar-dinero-co
           "cuanto-dinero-se-puede-enviar-a-mexico", "mandar-dinero-a-uruguay", "alternativas-a-western-union",
           "remitly-vs-wise", "remitly-vs-western-union", "envios-sin-comision",
           "which-is-better-remitly-or-western-union", "remitly-vs-wise-which-is-better",
-          "tipo-de-cambio", "promociones-primer-envio", "que-necesito-para-mandar-dinero"]
+          "tipo-de-cambio", "promociones-primer-envio", "que-necesito-para-mandar-dinero", "cobrar-remesa-en-efectivo"]
 WHATSAPP_CHANNEL = "https://whatsapp.com/channel/0029VbEb41M9mrGinB1b3K2y"  # also linked in index.html (results banner and footer)
 NAV_LINKS = ('<div class="nav-links"><a href="/#opciones">Comparar</a><a href="/#como-funciona">Cómo funciona</a>'
              '<a href="/guias/">Guías</a><a href="/#preguntas">Preguntas</a></div>')
@@ -571,6 +646,8 @@ def build_guide(page, data, slug, base, nav, links, aff):
         return esc(rows[0]["name"]) if rows else "—"
     content = re.sub(r"<!--TOP:(\w+):(\d+)-->", top, content)
     content = content.replace("<!--DATE-->", fecha(data["collected"], en))
+    content = content.replace("<!--PICKUPMAP-->", pickup_map()).replace("<!--PICKUPDATE-->", PICKUP_CHECKED)
+    content = re.sub(r"<!--PICKUP:(\w+)-->", lambda m: pickup_country(m[1]), content)
     content = re.sub(r"<!--GO:([^>]+?)-->", lambda m: f'<p class="go-line">{go_link(m[1], None, 0, None, path, links, aff, "cta")}</p>', content)
     if en:
         content = content.replace(">Ir a ", ">Go to ").replace(">Enlace de afiliado<", ">Affiliate link<")
