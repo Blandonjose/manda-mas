@@ -15,7 +15,7 @@ make_reel.py refuses a country when Wise/Instarem don't beat Western Union/Remit
 under 0.5%; daily.py then moves on to the next country in the rotation. The 3 PM slot is an
 evergreen tip; the twelve tips rotate, so each one comes back every twelve days.
 """
-import json, os, re, shutil, subprocess, sys
+import json, os, re, shutil, subprocess, sys, time
 from datetime import date
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -85,7 +85,18 @@ def country_video(code, name, slug, folder):
 
 def tip_video(slug, folder):
     env = dict(os.environ, TAP=TAP, OUT_DIR=folder)
-    subprocess.run([sys.executable, os.path.join(HERE, "make_explainer.py"), slug], env=env, check=True, capture_output=True)
+    cmd = [sys.executable, os.path.join(HERE, "make_explainer.py"), slug]
+    # AVFoundation occasionally exits during the first render on a freshly woken Mac.
+    # Retrying the same output folder is safe: make_explainer replaces its final files.
+    for attempt in range(2):
+        p = subprocess.run(cmd, env=env, capture_output=True, text=True)
+        if p.returncode == 0:
+            break
+        if attempt == 0:
+            time.sleep(2)
+    else:
+        detail = (p.stderr.strip().splitlines() or p.stdout.strip().splitlines() or ["unknown error"])[-1]
+        raise RuntimeError(f"make_explainer failed twice for {slug}: {detail}")
     text = open(os.path.join(folder, "texto.txt"), encoding="utf-8").read()
     body = re.sub(r"\n(Compara gratis y en español 👇|En Manda Más comparamos las apps cada hora, gratis y en español 👇)\nhttps://mandamasdinero.com\n", "\n", text)
     body = re.sub(r"\n#.*\n?$", "", body).strip()
@@ -105,6 +116,8 @@ def main():
     n = day.toordinal()
     slots = [("1-mediodia", "12:00 pm"), ("2-tarde", "3:00 pm"), ("3-noche", "6:00 pm")]
     plan, skipped, made = [], [], set()
+    # EXCLUDE=GT,DO skips countries posted on the days before, so the same country doesn't run days in a row.
+    made |= {c.strip().upper() for c in os.environ.get("EXCLUDE", "").split(",") if c.strip()}
     tips = list(TIPS)
     tip_today = tips[n % len(tips)]
     tip_today = SEASON_DAYS.get(day.isoformat(), tip_today)
