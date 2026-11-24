@@ -138,12 +138,101 @@ def page_meta(data, country, base):
         shown = provs[0]
     return {
         "path": SLUGS[country["code"]] + "/",
-        "title": f"Enviar dinero a {country['name']} desde Estados Unidos: compara precios | Manda Más",
+        "title": (f"Enviar dinero a {country['name']} desde USA: cuánto llega hoy con cada app | Manda Más" if len(provs) > 1
+                  else f"Enviar dinero a {country['name']} desde USA: cuánto llega hoy | Manda Más"),
         "desc": f"¿Cuál es la forma más barata de mandar dinero a {country['name']}? Compara estimaciones actualizadas de {shown} "
                 f"y mira cuántos {country['currencyName']} puede recibir tu familia.",
         "lede": f"Mira cuántos {country['currencyName']} puede recibir tu familia en {country['name']} con cada servicio "
                 f"al mandar dinero desde Estados Unidos. Comparamos {shown}.",
     }
+
+
+def fair_rows(c, amount):
+    """Services to name as "the one that delivers the most": no banks (customers only), no first-transfer promos."""
+    return [r for r in ranked(c, amount) if r["name"] not in BANKS and r["markup"] >= -0.1]
+
+
+def country_guide(code):
+    slug = "forma-mas-barata-mandar-dinero-a-mexico" if code == "MX" else "mandar-dinero-a-" + SLUGS[code]
+    return slug if slug in GUIDES else None
+
+
+def country_lede(data, c, amount=300):
+    rows, cur, day = fair_rows(c, amount), esc(c["currencyName"]), fecha(data["collected"])
+    if not rows:
+        return None
+    best = rows[0]
+    if len(rows) == 1:
+        text = (f"Hoy ({day}) tenemos el precio estimado de {esc(best['name'])} para envíos de ${amount} a {esc(c['name'])} "
+                f"desde Estados Unidos: tu familia recibiría unos <b>{local_amount(best['received'], c)} {cur}</b>.")
+        if c["currency"] == "USD":
+            text += (f" En {esc(c['name'])} se usa el dólar, así que no hay tipo de cambio: lo que cambia entre servicios es la comisión "
+                     "y la forma de recibir. Antes de enviar, revisa también Remitly, Western Union y Xoom en su app.")
+        return text
+    worst = rows[-1]
+    promo = any(r["markup"] < -0.1 and r["received"] > best["received"] and r["name"] not in BANKS for r in ranked(c, amount))
+    return (f"Hoy ({day}), al mandar ${amount} a {esc(c['name'])} desde Estados Unidos, <b>{esc(best['name'])}</b> es la opción que "
+            f"más entrega: unos <b>{local_amount(best['received'], c)} {cur}</b>"
+            + (" (sin contar promociones de primer envío)" if promo else "")
+            + f". {esc(worst['name'])} entrega unos {local_amount(worst['received'], c)}: "
+            f"{local_amount(best['received'] - worst['received'], c)} {cur} menos por el mismo envío. "
+            f"Comparamos {len(ranked(c, amount))} servicios; las cifras son estimaciones.")
+
+
+def country_faq(data, c):
+    """Three questions about this country, answered with today's numbers (shown on the page and sent to Google)."""
+    pais, cur, day = esc(c["name"]), esc(c["currencyName"]), fecha(data["collected"])
+    rows, out = fair_rows(c, 300), []
+    if len(rows) > 1:
+        b, w = rows[0], rows[-1]
+        out.append((f"¿Cuál es la app que más entrega para enviar dinero a {pais}?",
+                    f"Hoy ({day}), con un envío de $300, {esc(b['name'])} entrega unos {local_amount(b['received'], c)} {cur} y "
+                    f"{esc(w['name'])} unos {local_amount(w['received'], c)}. Sin contar promociones de primer envío. "
+                    "La que más entrega cambia según el día y el monto, así que conviene comparar antes de cada envío. Son estimaciones."))
+    elif c["currency"] == "USD":
+        out.append((f"¿Hay tipo de cambio al mandar dinero a {pais}?",
+                    f"No. En {pais} se usa el dólar, así que tu familia recibe dólares. Lo que cambia entre servicios es la comisión y la "
+                    f"forma de recibir (cuenta de banco o efectivo). Por ahora nuestros datos solo incluyen el precio de "
+                    + ", ".join(esc(r["name"]) for r in rows) + f" para {pais}; antes de enviar, revisa también otros servicios en su app."))
+    parts = []
+    for amt in (100, 500, 1000):
+        r = fair_rows(c, amt)
+        if r:
+            parts.append(f"con ${amt:,}, {esc(r[0]['name'])} (unos {local_amount(r[0]['received'], c)} {cur})")
+    if parts:
+        out.append((f"¿Cuánto llega si mando $100, $500 o $1,000 a {pais}?",
+                    f"Hoy ({day}), la opción que más entrega es: " + "; ".join(parts) + ". Escribe tu monto exacto arriba para ver "
+                    "todas las opciones. Son estimaciones: el precio final lo ves en la app antes de confirmar."))
+    r = {x["name"]: x for x in ranked(c, 300)}
+    if "Remitly" in r and "Wise" in r:
+        win, lose = (r["Wise"], r["Remitly"]) if r["Wise"]["received"] >= r["Remitly"]["received"] else (r["Remitly"], r["Wise"])
+        out.append((f"¿Remitly o Wise para mandar dinero a {pais}?",
+                    f"Hoy, con $300, {esc(win['name'])} entrega más: unos {local_amount(win['received'], c)} {cur}, frente a "
+                    f"{local_amount(lose['received'], c)} con {esc(lose['name'])}. Wise deposita en cuenta de banco; Remitly en muchos "
+                    'países también permite recoger en efectivo. <a href="/guias/remitly-vs-wise/">Ver Remitly vs Wise en todos los países</a>.'))
+    return "".join(f"<details><summary>{q}</summary><p>{a}</p></details>" for q, a in out)
+
+
+def static_rows(c, amount, links, aff):
+    """The ranking for $300 written into the page, so it is there before the script runs (and for Google).
+    renderList() in index.html replaces it with the live, interactive list."""
+    out = ""
+    for i, r in enumerate(ranked(c, amount), 1):
+        pills = ('<span class="pill best">Recibe más</span>' if i == 1 else "") + \
+                ('<span class="pill promo">Promoción, casi siempre solo el primer envío</span>' if r["markup"] < -0.1 else "") + \
+                ('<span class="pill">Solo clientes del banco</span>' if r["name"] in BANKS else "")
+        money = "dólares" if c["currency"] == "USD" else f'{esc(c["currencyName"])} · ${r["received"] / c["mid"]:,.2f}'
+        cost = f'comisión ${r["fee"]:,.2f}' + ("" if c["currency"] == "USD" else f' + cambio ${max(0, r["fx"]):,.2f}')
+        go = ""
+        if r["name"] in links:
+            go = (f'<span class="go-wrap"><a class="go" href="{esc(links[r["name"]])}" target="_blank" rel="noopener sponsored" '
+                  f'data-service="{esc(r["name"])}" data-rank="{i}" data-location="results">Ir a {esc(r["name"].replace(" (US)", ""))} ↗</a>'
+                  + ('<small class="aff-tag">Enlace de afiliado</small>' if r["name"] in aff else "") + "</span>")
+        out += (f'<li class="row{" best" if i == 1 else ""}"><div class="row-top"><span class="rank num">{i}</span><div class="who">'
+                f'<h3>{esc(r["name"])}</h3>' + (f'<div class="pills">{pills}</div>' if pills else "") + '</div><div class="gets">'
+                f'<strong class="num">{local_amount(r["received"], c)}</strong><span class="num">{money}</span></div></div>'
+                f'<div class="row-bottom"><p class="cost num">Te cuesta <b>${max(0, r["fee"] + r["fx"]):,.2f}</b> ({cost})</p>{go}</div></li>')
+    return out
 
 
 def build_page(page, data, country, base, nav):
@@ -155,15 +244,50 @@ def build_page(page, data, country, base, nav):
     head = re.sub(r'<meta name="description"[^>]*>\s*', "", head)
     body = re.sub(r'(<p class="lede" id="lede">).*?(</p>)', lambda x: x.group(1) + esc(m["lede"]) + x.group(2), body, flags=re.S)
     body = body.replace("<!--COUNTRY_LINKS-->", nav)
-    if country and app_links_html(data, country):
-        body = body.replace('<section class="crypto"', '<p class="app-links"><b>Precio de hoy por app:</b> '
-                            + app_links_html(data, country) + '</p><section class="crypto"', 1)
+    live = [c for c in data["countries"] if c["providers"]]
+    if country:
+        links, aff = page_links(page)
+        name = esc(country["name"])
+        body = body.replace('<h1>Que llegue <em>más dinero</em> a tu familia</h1>',
+                            f'<h1 class="country-h1">Enviar dinero a {name} desde Estados Unidos</h1>'
+                            '<p class="h1-sub">Que llegue <em>más dinero</em> a tu familia</p>', 1)
+        lede = country_lede(data, country)
+        if lede:
+            body = re.sub(r'(<p class="lede" id="lede">).*?(</p>)', lambda x: x.group(1) + lede + x.group(2), body, count=1, flags=re.S)
+        body = body.replace('<ol class="list" id="list"></ol>', f'<ol class="list" id="list">{static_rows(country, 300, links, aff)}</ol>', 1)
+        extra = []
+        if app_links_html(data, country):
+            extra.append('<p class="app-links"><b>Precio de hoy por app:</b> ' + app_links_html(data, country) + '</p>')
+        guides = []
+        if country_guide(country["code"]):
+            guides.append(f'<a href="/guias/{country_guide(country["code"])}/">Cómo mandar dinero a {name}</a>')
+        if "Remitly" in country["providers"] and "Wise" in country["providers"]:
+            guides.append(f'<a href="/guias/remitly-vs-wise/">¿Remitly o Wise para {name}?</a>')
+        if guides:
+            extra.append('<p class="app-links"><b>Guías:</b> ' + "".join(guides) + '</p>')
+        body = body.replace('<section class="crypto"', "".join(extra) + '<section class="crypto"', 1)
+        faq = country_faq(data, country)
+        if faq:
+            body = re.sub(r'(<h2 class="section-title" id="faq-title">Preguntas frecuentes</h2>)\s*<details>.*?</details>',
+                          lambda x: x.group(1) + faq, body, count=1, flags=re.S)   # its own questions replace the generic first one
+        provs = list(country["providers"])
+        perk = (f'<b>{len(provs)} servicios lado a lado</b><span>{esc(", ".join(provs))}.</span>' if len(provs) > 1
+                else f'<b>Precio estimado de hoy</b><span>Por ahora tenemos datos de {esc(provs[0])} para {name}.</span>')
+        rows = ranked(country, 300)
+        badge = (f'<b>{round((rows[0]["received"] - rows[-1]["received"]) / rows[-1]["received"] * 100)}% más</b>dinero eligiendo bien hoy'
+                 if len(rows) > 1 and rows[-1]["received"] > 0 else '<b>Gratis</b>y sin registro')
+    else:
+        perk = f'<b>Hasta {max(len(c["providers"]) for c in live)} servicios lado a lado</b><span>Remitly, Western Union, Xoom, Wise, bancos y más.</span>'
+        gaps = [round((r[0]["received"] - r[-1]["received"]) / r[-1]["received"] * 100) for r in (ranked(c, 300) for c in live) if len(r) > 1 and r[-1]["received"] > 0]
+        badge = f'<b>Hasta {max(gaps)}%</b>más dinero al comparar' if gaps else '<b>Gratis</b>y sin registro'
+    body = body.replace('<b>Hasta 10 servicios lado a lado</b><span>Remitly, Western Union, Xoom, Wise, bancos y más.</span>', perk, 1)
+    body = re.sub(r'(<div class="badge" id="story-badge">).*?(</div>)', lambda x: x.group(1) + badge + x.group(2), body, count=1, flags=re.S)
     ld = [{"@context": "https://schema.org", "@type": "WebApplication", "name": "Manda Más",
            "description": m["desc"], "applicationCategory": "FinanceApplication", "operatingSystem": "Any",
            "inLanguage": "es", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}]
     if url:
         ld[0]["url"] = url
-    faqs = faq_items(page)
+    faqs = faq_items(body)
     if faqs:
         ld.append({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": faqs})
     meta = head_meta(m["title"], m["desc"], url, base)
@@ -315,8 +439,9 @@ def go_link(name, country, amount, rank, path, links, aff, cls=None):
         props["rank"] = str(rank)
     attrs = "".join(f' data-umami-event-{k}="{esc(v)}"' for k, v in props.items())
     klass = f' class="{cls}"' if cls else ""
+    tag = '<small class="aff-tag">Enlace de afiliado</small>' if name in aff else ""
     return (f'<a{klass} href="{esc(links[name])}" target="_blank" rel="noopener sponsored" data-umami-event="outbound_service_click"'
-            f'{attrs}>Ir a {esc(name.replace(" (US)", ""))} ↗</a>')
+            f'{attrs}>Ir a {esc(name.replace(" (US)", ""))} ↗</a>{tag}')
 
 
 def source_note(data, amount, where, old, en=False):
@@ -369,7 +494,7 @@ def guide_vs(data, a, b, amount, path, links, aff, en=False):
             continue
         win = a if r[a]["received"] > r[b]["received"] else b if r[b]["received"] > r[a]["received"] else "Tie" if en else "Empate"
         place, money = (COUNTRY_EN.get(c["name"], c["name"]), c["currency"]) if en else (c["name"], c["currencyName"])
-        body += (f'<tr><td>{esc(place)}</td><td><b>{esc(win)}</b></td><td class="num">{local_amount(r[a]["received"], c)}</td>'
+        body += (f'<tr><td><a href="/{SLUGS[c["code"]]}/">{esc(place)}</a></td><td><b>{esc(win)}</b></td><td class="num">{local_amount(r[a]["received"], c)}</td>'
                  f'<td class="num">{local_amount(r[b]["received"], c)}</td><td>{esc(money)}</td></tr>')
     if not body:
         return "<p>We don't have data for both services right now.</p>" if en else "<p>Por ahora no tenemos datos de los dos servicios a la vez.</p>"
@@ -446,9 +571,9 @@ def build_guide(page, data, slug, base, nav, links, aff):
         return esc(rows[0]["name"]) if rows else "—"
     content = re.sub(r"<!--TOP:(\w+):(\d+)-->", top, content)
     content = content.replace("<!--DATE-->", fecha(data["collected"], en))
-    content = re.sub(r"<!--GO:([^>]+?)-->", lambda m: f'<p>{go_link(m[1], None, 0, None, path, links, aff, "cta")}</p>', content)
+    content = re.sub(r"<!--GO:([^>]+?)-->", lambda m: f'<p class="go-line">{go_link(m[1], None, 0, None, path, links, aff, "cta")}</p>', content)
     if en:
-        content = content.replace(">Ir a ", ">Go to ")
+        content = content.replace(">Ir a ", ">Go to ").replace(">Enlace de afiliado<", ">Affiliate link<")
     h1 = re.search(r"<h1>(.*?)</h1>", content, re.S).group(1)
     page_url = (base or "https://mandamasdinero.com/") + path.lstrip("/")
     share = urllib.parse.quote(html_mod.unescape(re.sub(r"<.*?>", "", h1)) + " " + page_url)
@@ -462,7 +587,13 @@ def build_guide(page, data, slug, base, nav, links, aff):
     ld = {"@context": "https://schema.org", "@type": "Article", "headline": html_mod.unescape(re.sub(r"<.*?>", "", h1)),
           "description": desc, "inLanguage": "en" if en else "es", "dateModified": data["collected"],
           "author": {"@type": "Organization", "name": "Manda Más"}, "publisher": {"@type": "Organization", "name": "Manda Más"}}
-    return doc_page(page, content, title, desc, f"guias/{slug}/", base, nav, ld, "en" if en else "es")
+    out = doc_page(page, content, title, desc, f"guias/{slug}/", base, nav, ld, "en" if en else "es")
+    faqs = faq_items(content)
+    if faqs:
+        faq_ld = {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": faqs}
+        out = out.replace("</head>", '<script type="application/ld+json">' + json.dumps(faq_ld, ensure_ascii=False).replace("</", "<\\/")
+                          + "</script></head>", 1)
+    return out
 
 
 # App pages: /<country>/<app>/ ("Remitly a México hoy"), one per service and country, built from the hourly data.
@@ -554,7 +685,7 @@ def build_app_page(page, data, c, name, base, nav, links, aff):
     content = (f'<p class="eyebrow">Precio de hoy · {esc(pais)}</p><h1>{esc(name)} a {esc(pais)} hoy: cuánto recibe tu familia</h1>'
                f'<p class="updated">Precios actualizados el {fecha(data["collected"])}. Se actualizan cada hora.</p>'
                f'<p class="lead">{lead}</p>'
-               + (f"<p>{go}</p>" if go else "")
+               + (f'<p class="go-line">{go}</p>' if go else "")
                + f'<h2>¿Cuánto llega con {esc(name)} según lo que mandes?</h2>{table}'
                + fx
                + f'<h2>Todas las apps a {esc(pais)} hoy (envío de ${APP_MAIN})</h2>'

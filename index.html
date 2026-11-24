@@ -79,6 +79,15 @@ a { color: var(--navy-2); }
 .season:hover { background: rgba(255,255,255,.18); }
 .hero h1 { font-size: clamp(2.3rem, 5.4vw, 3.9rem); font-weight: 800; letter-spacing: -0.03em; }
 .hero h1 em { font-style: normal; color: var(--accent); }
+.hero h1.country-h1 { font-size: clamp(2rem, 4.4vw, 3.2rem); }
+.h1-sub { font-family: var(--display); font-weight: 700; font-size: clamp(1.15rem, 2.2vw, 1.5rem); margin: 10px 0 0; }
+.h1-sub em { font-style: normal; color: var(--accent); }
+.go-wrap { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.aff-tag { font-size: 0.72rem; color: var(--muted); font-weight: 400; }
+.best-card .go { justify-content: center; margin-top: 8px; background: var(--accent); color: #2a1400; }
+.best-card .aff-tag { text-align: center; }
+.guide-table .aff-tag { display: block; margin-top: 2px; }
+.doc .go-line { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin: 4px 0; }
 .lede { color: var(--on-navy-muted); font-size: 1.08rem; max-width: 56ch; }
 
 /* Calculator card (in hero) */
@@ -742,6 +751,13 @@ a { color: var(--navy-2); }
     big.appendChild(el("small", null, c.currencyName));
     card.appendChild(big);
     card.appendChild(el("p", "usd num", c.currency === "USD" ? "en dólares" : "Vale " + usd(best.worthUsd) + " al cambio real"));
+    if (LINKS[best.name]) {   // the first thing people see on a phone gets a button too (whoever is #1, partner or not)
+      const a = el("a", "go", "Ir a " + best.name.replace(" (US)", "") + " ↗");
+      a.href = LINKS[best.name]; a.target = "_blank"; a.rel = "noopener sponsored";
+      a.dataset.service = best.name; a.dataset.rank = "1"; a.dataset.location = "best_card";
+      card.appendChild(a);
+      if (AFFILIATE.has(best.name)) card.appendChild(el("small", "aff-tag", "Enlace de afiliado"));
+    }
     box.appendChild(card);
     if (list.length > 1 && worst.received < best.received) {
       const lostLocal = best.received - worst.received, lostUsd = lostLocal / c.mid;
@@ -814,7 +830,10 @@ a { color: var(--navy-2); }
         const a = el("a", "go", "Ir a " + r.name.replace(" (US)", "") + " ↗");
         a.href = LINKS[r.name]; a.target = "_blank"; a.rel = "noopener sponsored";
         a.dataset.service = r.name; a.dataset.rank = String(i + 1); a.dataset.location = "results";   // for analytics
-        bottom.appendChild(a);
+        const wrap = el("span", "go-wrap");
+        wrap.appendChild(a);
+        if (AFFILIATE.has(r.name)) wrap.appendChild(el("small", "aff-tag", "Enlace de afiliado"));
+        bottom.appendChild(wrap);
       }
       li.appendChild(bottom);
       box.appendChild(li);
